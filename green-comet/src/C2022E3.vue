@@ -842,10 +842,6 @@ export default defineComponent({
           mode: "autodetect",
           name: name,
           goto: false
-        }).then((layer) => {
-          this.imagesetLayers[name] = layer;
-          applyImageSetLayerSetting(layer, ["opacity", 0]);
-          return layer;
         }));
       });
       
@@ -908,7 +904,13 @@ export default defineComponent({
 
       this.showControls = !this.mobile;
 
-      Promise.all(layerPromises).then(() => {
+      Promise.all(layerPromises).then((layers) => {
+        layers.forEach(layer => {
+          if (layer instanceof ImageSetLayer) {
+            this.imagesetLayers[layer.get_imageSet().get_name()] = layer;
+            applyImageSetLayerSetting(layer, ["opacity", 0]);
+          }
+        });
         this.layersLoaded = true;
         
         // Set all of the imageset layers to be above the spreadsheet layers
