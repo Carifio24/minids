@@ -1289,32 +1289,36 @@ body {
   color: var(--color-default2);
 }
 
+.v-checkbox /deep/ label {
+  opacity: 1;
+}
+
 .constellations /deep/ label {
-    color: var(--color-default2);
+  color: var(--color-default2);
 }
 
 .radio-quiet /deep/ label {
-    color: var(--color0);
+  color: var(--color0);
 }
 
 .radio-loud /deep/ label {
-    color: var(--color1);
+  color: var(--color1);
 }
 
 .isolated /deep/ label {
-    color: var(--color2);
+  color: var(--color2);
 }
 
 .binary /deep/ label {
-    color: var(--color3);
+  color: var(--color3);
 }
 
 .black-widow /deep/ label {
-    color: var(--color4);
+  color: var(--color4);
 }
 
 .redback /deep/ label {
-    color: var(--color5);
+  color: var(--color5);
 }
 
 .spyder-sys /deep/ {
@@ -1377,7 +1381,7 @@ body {
 
   .v-label {
     color: var(--color-default2);
-    opacity: 1;
+    opacity: 1 !important;
   }
 
   .controls-content {
