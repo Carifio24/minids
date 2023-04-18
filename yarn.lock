@@ -495,6 +495,42 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@minids/gamma-ray-pulsar@workspace:gamma-ray-pulsar":
+  version: 0.0.0-use.local
+  resolution: "@minids/gamma-ray-pulsar@workspace:gamma-ray-pulsar"
+  dependencies:
+    "@kyvg/vue3-notification": ^2.8.0
+    "@minids/common": "workspace:0.0.0"
+    "@types/d3-dsv": ^3.0.1
+    "@types/leaflet": ^1.9.0
+    "@types/tz-lookup": ^6.1.0
+    "@typescript-eslint/eslint-plugin": ^5.48.1
+    "@typescript-eslint/parser": ^5.48.1
+    "@vue/cli-plugin-eslint": ^5.0.8
+    "@vue/cli-plugin-typescript": ^5.0.8
+    "@vue/cli-service": ^5.0.8
+    "@vue/compiler-sfc": ^3.2.45
+    "@vue/eslint-config-typescript": ^11.0.2
+    "@vuepic/vue-datepicker": ^3.6.5
+    "@wwtelescope/astro": ^0.2.2
+    d3-dsv: ^3.0.1
+    date-fns-tz: ^2.0.0
+    eslint: ^8.31.0
+    eslint-plugin-vue: ^9.8.0
+    femtotween: ^2.0.3
+    leaflet: ^1.9.3
+    less: ^4.1.3
+    less-loader: ^11.1.0
+    typescript: ^4.9.4
+    tz-lookup: ^6.1.25
+    vue: ^3
+    vue-slider-component: next
+    vuetify: ^3.1.1
+    webpack: ^5.75.0
+    webpack-plugin-vuetify: ^2.0.0
+  languageName: unknown
+  linkType: soft
+
 "@minids/green-comet@workspace:green-comet":
   version: 0.0.0-use.local
   resolution: "@minids/green-comet@workspace:green-comet"
@@ -4351,6 +4387,13 @@ __metadata:
   dependencies:
     pend: ~1.2.0
   checksum: c8585fd5713f4476eb8261150900d2cb7f6ff2d87f8feb306ccc8a1122efd152f1783bdb2b8dc891395744583436bfd8081d8e63ece0ec8687eeefea394d4ff2
+  languageName: node
+  linkType: hard
+
+"femtotween@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "femtotween@npm:2.0.3"
+  checksum: e8ff3e618588d1ae020c9b8b574187f013b2653fd53e65e034b56decb3d1cba087943e9ef7be7694ec62fbb5b476d633b8e931a857edc581aa91684c6c277e51
   languageName: node
   linkType: hard
 

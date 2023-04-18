@@ -4,6 +4,7 @@
     "workspaces": [
         "carina",
         "common",
+        "gamma-ray-pulsar",
         "green-comet",
         "tests"
     ],
