@@ -578,7 +578,7 @@ import { defineComponent } from 'vue';
 import { csvFormatRows, csvParse } from "d3-dsv";
 
 import { distance } from "@wwtelescope/astro";
-import { Color, Constellations, Folder, Grids, Layer, LayerManager, Poly, RenderContext, Settings, SpreadSheetLayer, WWTControl } from "@wwtelescope/engine";
+import { Color, Constellations, Coordinates, Folder, Grids, Layer, LayerManager, Poly, RenderContext, Settings, SpreadSheetLayer, Text3d, Text3dBatch, Vector3d, WWTControl } from "@wwtelescope/engine";
 import { MarkerScales, PlotTypes, Thumbnail } from "@wwtelescope/engine-types";
 
 import L, { LeafletMouseEvent, Map } from "leaflet";
@@ -912,6 +912,13 @@ export default defineComponent({
 
       this.createArrow();
 
+      //this.gotoRADecZoom({
+      //  raRad: 0,
+      //  decRad: 0,
+      //  zoomDeg: 60,
+      //  instant: true
+      //});
+
       this.gotoRADecZoom({
         raRad: D2R * this.m101RADeg,
         decRad: D2R * this.m101DecDeg,
@@ -1068,6 +1075,12 @@ export default defineComponent({
       this.innerArrow.set_fill(true);
 
       this.addAnnotation(this.innerArrow);
+
+      const arrowTextBatch = new Text3dBatch(100);
+      const location = Coordinates.raDecTo3dAu(this.m101RADeg, this.m101DecDeg, 1);
+      const arrowText = new Text3d(location, Vector3d.create(0, 1, 0), "AAA", 100, 0.1);
+      arrowTextBatch.add(arrowText);
+      arrowTextBatch.draw(this.wwtRenderContext, 1, Color.fromSimpleHex(this.accentColor));
     },
 
     clearPlayingInterval() {

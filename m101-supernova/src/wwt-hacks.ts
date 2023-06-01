@@ -38,13 +38,20 @@ export function initializeConstellationNames() {
   Object.keys(Constellations.constellationCentroids).forEach(key => {
     const centroid = Constellations.constellationCentroids[key];
     const center = Coordinates.raDecTo3dAu(centroid.get_RA(), centroid.get_dec(), 1);
+    console.log(center);
     const up = Vector3d.create(0, 1, 0);
     let name = centroid.get_name();
+    console.log(name);
     if (centroid.get_name() === 'Triangulum Australe') {
       name = name.replace(" ", "\n   ");
     }
     Constellations._namesBatch.add(new Text3d(center, up, name, textSize, 0.000125));
   });
+
+  const center = Coordinates.raDecTo3dAu(3.681181581357794 * 15 / 3.14, 0.9480289529731357 * 180 / 3.14, 1);
+  const up = Vector3d.create(0, 1, 0);
+  console.log(center);
+  Constellations._namesBatch.add(new Text3d(center, up, "AAA", textSize, 0.000125));
 };
 
 export function makeAltAzGridText() {

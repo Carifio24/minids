@@ -9,10 +9,13 @@ declare module "@wwtelescope/engine" {
 
   export class Text3dBatch {
     constructor(height: number);
+
+    add(text: Text3d): void;
+    draw(rendexContext: RenderContext, opacity: number, color: Color): void;
   }
 
   export class Text3d {
-    constructor(center: boolean, up: boolean, text: string, fontsize: number, scale: number);
+    constructor(center: Vector3d, up: Vector3d, text: string, fontsize: number, scale: number);
   }
 
   export class Vector3d {
@@ -23,6 +26,10 @@ declare module "@wwtelescope/engine" {
 
   export class PushPin {
     static getPushPinTexture(pinId: number): Texture;
+  }
+
+  export class Coordinates {
+    static raDecTo3dAu(ra: number, dec: number, z: number): Vector3d; 
   }
 
 }
