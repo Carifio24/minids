@@ -578,7 +578,7 @@ import { defineComponent } from 'vue';
 import { csvFormatRows, csvParse } from "d3-dsv";
 
 import { distance } from "@wwtelescope/astro";
-import { Color, Constellations, Folder, Grids, Layer, LayerManager, Poly, RenderContext, Settings, SpreadSheetLayer, WWTControl } from "@wwtelescope/engine";
+import { Color, Constellations, Coordinates, Folder, Grids, Layer, LayerManager, Poly, RenderContext, Settings, SpreadSheetLayer, Text3d, Text3dBatch, Vector3d, WWTControl } from "@wwtelescope/engine";
 import { MarkerScales, PlotTypes, Thumbnail } from "@wwtelescope/engine-types";
 
 import L, { LeafletMouseEvent, Map } from "leaflet";
@@ -751,7 +751,7 @@ export default defineComponent({
       playingWaitCount: 0,
 
       showAltAzGrid: false,
-      showConstellations: true,
+      showConstellations: false,
       showHorizon: false,
       outerArrow: null as Poly | null,
       innerArrow: null as Poly | null,
@@ -777,7 +777,7 @@ export default defineComponent({
       imageDateSorted: imageDatesTable.map(d => d.date.getTime()).sort((a, b) => a - b),
       lastClosePt: null as TableRow | null,
       ephemerisColor: "#D60493",
-      accentColor: "#a0009b",
+      accentColor: "#A0009B",
       todayColor: "#D6B004",
 
       incomingItemSelect: null as Thumbnail | null,
@@ -1010,63 +1010,82 @@ export default defineComponent({
   methods: {
 
     createArrow() {
+
+      // All values here are in degrees
     
       // Create the outer (purple) arrow
-      this.outerArrow = new Poly();
+      //this.outerArrow = new Poly();
 
-      const pointRA = this.m101RADeg + 0.05;
-      const centerDec = this.m101DecDeg;
-      const arrowHalfHeight = 0.02;
-      const stemFraction = 0.4;
-      const headWidth = 0.05;
-      const stemWidth = 0.05;
-      const headBackRA = pointRA + headWidth;
-      const stemBackRA = headBackRA + stemWidth;
-      const topDec = centerDec + arrowHalfHeight;
-      const bottomDec = centerDec - arrowHalfHeight;
-      const stemHalfHeight = stemFraction * arrowHalfHeight;
-      const stemTopDec = centerDec + stemHalfHeight;
-      const stemBottomDec = centerDec - stemHalfHeight;
-      this.outerArrow.addPoint(pointRA, centerDec);
-      this.outerArrow.addPoint(headBackRA, topDec);
-      this.outerArrow.addPoint(headBackRA, stemTopDec);
-      this.outerArrow.addPoint(stemBackRA, stemTopDec);
-      this.outerArrow.addPoint(stemBackRA, stemBottomDec);
-      this.outerArrow.addPoint(headBackRA, stemBottomDec);
-      this.outerArrow.addPoint(headBackRA, bottomDec);
+      //const pointRA = this.m101RADeg + 0.05;
+      //const centerDec = this.m101DecDeg;
+      //const arrowHalfHeight = 0.02;
+      //const stemFraction = 0.4;
+      //const headWidth = 0.05;
+      //const stemWidth = 0.05;
+      //const headBackRA = pointRA + headWidth;
+      //const stemBackRA = headBackRA + stemWidth;
+      //const topDec = centerDec + arrowHalfHeight;
+      //const bottomDec = centerDec - arrowHalfHeight;
+      //const stemHalfHeight = stemFraction * arrowHalfHeight;
+      //const stemTopDec = centerDec + stemHalfHeight;
+      //const stemBottomDec = centerDec - stemHalfHeight;
+      //this.outerArrow.addPoint(pointRA, centerDec);
+      //this.outerArrow.addPoint(headBackRA, topDec);
+      //this.outerArrow.addPoint(headBackRA, stemTopDec);
+      //this.outerArrow.addPoint(stemBackRA, stemTopDec);
+      //this.outerArrow.addPoint(stemBackRA, stemBottomDec);
+      //this.outerArrow.addPoint(headBackRA, stemBottomDec);
+      //this.outerArrow.addPoint(headBackRA, bottomDec);
 
-      this.outerArrow.set_lineColor(this.accentColor);
-      this.outerArrow.set_fillColor(this.accentColor);
-      this.outerArrow.set_fill(true);
-      
-      this.addAnnotation(this.outerArrow);
+      //this.outerArrow.set_lineColor(this.accentColor);
+      //this.outerArrow.set_fillColor(this.accentColor);
+      //this.outerArrow.set_fill(true);
+      //
+      //this.addAnnotation(this.outerArrow);
 
-      // Create the inner (white) arrow
-      this.innerArrow = new Poly();
+      //// Create the inner (white) arrow
+      //this.innerArrow = new Poly();
      
-      const delta = 0.002; // The thickness of the outer "border"
-      const headSlope = (topDec - centerDec) / (headBackRA - pointRA);
-      const innerPointRA = pointRA + delta * Math.sqrt(1 + (headSlope ** 2) ) / headSlope;
-      const innerHeadBackRA = headBackRA - delta; 
-      const innerStemBackRA = stemBackRA - delta;
-      const innerTopDec = headSlope * (innerHeadBackRA - innerPointRA) + centerDec;
-      const innerBottomDec = 2 * centerDec - innerTopDec;
-      const innerStemTopDec = stemTopDec - 0.75 * delta;
-      const innerStemBottomDec = stemBottomDec + 0.75 * delta;
-      this.innerArrow.addPoint(innerPointRA, centerDec);
-      this.innerArrow.addPoint(innerHeadBackRA, innerTopDec); 
-      this.innerArrow.addPoint(innerHeadBackRA, innerStemTopDec);
-      this.innerArrow.addPoint(innerStemBackRA, innerStemTopDec); 
-      this.innerArrow.addPoint(innerStemBackRA, innerStemBottomDec);
-      this.innerArrow.addPoint(innerHeadBackRA, innerStemBottomDec);
-      this.innerArrow.addPoint(innerHeadBackRA, innerBottomDec);
+      //const delta = 0.002; // The thickness of the outer "border"
+      //const headSlope = (topDec - centerDec) / (headBackRA - pointRA);
+      //const innerPointRA = pointRA + delta * Math.sqrt(1 + (headSlope ** 2) ) / headSlope;
+      //const innerHeadBackRA = headBackRA - delta; 
+      //const innerStemBackRA = stemBackRA - delta;
+      //const innerTopDec = headSlope * (innerHeadBackRA - innerPointRA) + centerDec;
+      //const innerBottomDec = 2 * centerDec - innerTopDec;
+      //const innerStemTopDec = stemTopDec - 0.75 * delta;
+      //const innerStemBottomDec = stemBottomDec + 0.75 * delta;
+      //this.innerArrow.addPoint(innerPointRA, centerDec);
+      //this.innerArrow.addPoint(innerHeadBackRA, innerTopDec); 
+      //this.innerArrow.addPoint(innerHeadBackRA, innerStemTopDec);
+      //this.innerArrow.addPoint(innerStemBackRA, innerStemTopDec); 
+      //this.innerArrow.addPoint(innerStemBackRA, innerStemBottomDec);
+      //this.innerArrow.addPoint(innerHeadBackRA, innerStemBottomDec);
+      //this.innerArrow.addPoint(innerHeadBackRA, innerBottomDec);
 
-      const innerColor = "#ffffff";
-      this.innerArrow.set_lineColor(innerColor);
-      this.innerArrow.set_fillColor(innerColor);
-      this.innerArrow.set_fill(true);
+      //const innerColor = "#ffffff";
+      //this.innerArrow.set_lineColor(innerColor);
+      //this.innerArrow.set_fillColor(innerColor);
+      //this.innerArrow.set_fill(true);
 
-      this.addAnnotation(this.innerArrow);
+      //this.addAnnotation(this.innerArrow);
+
+      const arrowTextPosition = Coordinates.raDecTo3d(this.m101RADeg, this.m101DecDeg);
+      const up = Vector3d.create(0, 1, 0);
+      const arrowText = new Text3d(arrowTextPosition, up, "Supernova", 30, 0.000125);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      if (Constellations._namesBatch == null) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+        Constellations.initializeConstellationNames();
+      }
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      Constellations._namesBatch.add(arrowText);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      Constellations._namesBatch.draw(this.wwtRenderContext, 1, Color.fromArgb(255, 255, 255, 255));
     },
 
     clearPlayingInterval() {
