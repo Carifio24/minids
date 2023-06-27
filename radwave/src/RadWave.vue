@@ -40,6 +40,7 @@ export default defineComponent({
   extends: MiniDSBase,
 
   mounted() {
+    console.log(majorCatalogCSV);
     this.waitForReady().then(async () => {
       this.setBackgroundImageByName("Solar System");
       
