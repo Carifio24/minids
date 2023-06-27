@@ -17,10 +17,29 @@
 import { MiniDSBase } from "@minids/common";
 import { defineComponent } from "vue";
 
+type SheetType = "text" | "video" | null;
+
 export default defineComponent({
   extends: MiniDSBase,
 
+  data() {
+    return {
+      sheet: null as SheetType,
+      showTextTooltip: false
+    };
+  },
+
   computed: {
+    showTextSheet: {
+      get(): boolean {
+        return this.sheet === 'text';
+      },
+      set(_value: boolean) {
+        this.selectSheet('text');
+        this.showTextTooltip = false;
+      }
+    },
+
     cssVars() {
       return {
         '--app-content-height': this.showTextSheet ? '66%' : '100%'
