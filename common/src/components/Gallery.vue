@@ -54,10 +54,23 @@
           :class="['gallery-item', {'selected': highlightLastOnly ? selectedPlace === place : selectedPlaces.includes(place)}]"
           @click="selectPlace(place)"
         >
-          <img
-            class="noselect"
-            :src="getImageset(place)?.get_thumbnailUrl() ?? ''"
-          />
+          <v-tooltip
+            :open-delay="500"
+            max-width="200px"
+            location="top"
+          >
+          <template v-slot:activator="{ props }: { props: Record<string,any> }">
+              <img
+                v-bind="props"
+                class="noselect"
+                :src="getImageset(place)?.get_thumbnailUrl() ?? ''"
+              />
+            </template>
+            <div>
+              <div v-html="place.htmlDescription"></div>
+              <div v-html="creditsHtml(place)"></div>
+            </div>
+          </v-tooltip>
           <span class="place-name noselect">{{ place.get_name() }}</span>
         </div>
       </div>
@@ -70,6 +83,7 @@ import { defineComponent } from 'vue';
 import { Folder, Imageset, Place } from "@wwtelescope/engine";
 import { engineStore } from "@wwtelescope/engine-pinia";
 import { mapActions } from "pinia";
+import { VTooltip } from 'vuetify/components/VTooltip';
 
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -80,6 +94,7 @@ library.add(faTimes);
 export default defineComponent({
 
   components: {
+    'v-tooltip': VTooltip,
     'font-awesome-icon': FontAwesomeIcon
   },
   
@@ -168,6 +183,19 @@ export default defineComponent({
         this.selectedPlaces = this.singleSelect ? [place] : [...this.selectedPlaces, place];
       }
       
+    },
+
+    creditsHtml(place: Place): string {
+      const imageset = place.get_backgroundImageset() ?? place.get_studyImageset();
+      if (imageset === null) {
+        return "";
+      }
+      let html = `Credits: ${imageset.get_creditsText()}`;
+      const url = imageset.get_creditsUrl();
+      if (url) {
+        html = `<a href="${url} target="_blank" rel="noopener noreferrer">${html}</a>`;
+      }
+      return html;
     }
   },
 
