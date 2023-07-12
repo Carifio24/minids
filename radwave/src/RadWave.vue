@@ -16,10 +16,13 @@
 <script lang="ts">
 import { MiniDSBase } from "@minids/common";
 import { SpreadSheetLayer } from "@wwtelescope/engine";
+import { AltUnits } from "@wwtelescope/engine-types";
 import { defineComponent } from "vue";
 import { csv } from "d3-fetch";
 
-import majorCatalogCSV from "./assets/Major_Cloud_Catalog_WAVE_subset_WWT.csv";
+import radwaveData from "./assets/RW_dust_oscillation_phase.csv";
+
+const R2D = 180.0 / Math.PI;
 
 type SheetType = "text" | "video" | null;
 
@@ -39,11 +42,31 @@ async function parseCsvTable(path: string) {
 export default defineComponent({
   extends: MiniDSBase,
 
-  mounted() {
-    console.log(majorCatalogCSV);
+  async mounted() {
+    console.log(this);
+    const data = radwaveData.replace(/,/g, '\t').replace(/\n/g, '\r\n');  // WWT needs CRLF
     this.waitForReady().then(async () => {
       this.setBackgroundImageByName("Solar System");
-      
+      this.setForegroundImageByName("Solar System");
+      this.applySetting(["solarSystemStars", true]);
+      this.applySetting(["actualPlanetScale", true]);
+      this.applySetting(["solarSystemCMB", true]);
+      this.gotoRADecZoom({
+        raRad: 114.85 * R2D,
+        decRad: -29.52 * R2D,
+        zoomDeg: 6e9,
+        instant: true
+      });
+      const layer = await this.createTableLayer({
+        name: "Radcliffe Wave",
+        referenceFrame: "Sky",
+        dataCsv: data 
+      });
+      layer.set_xAxisColumn(1);
+      layer.set_yAxisColumn(2);
+      layer.set_zAxisColumn(3);
+      layer.set_altUnit(AltUnits.parsecs);
+      console.log(layer);
     });
   },
 
