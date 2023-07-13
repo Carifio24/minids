@@ -9,16 +9,26 @@
       <WorldWideTelescope
         :wwt-namespace="wwtNamespace"
       ></WorldWideTelescope>
+
+      <div class="bottom-content">
+        <v-slider
+          discrete
+          v-model="phase"
+          min="0"
+          max="360"
+          step="10"
+        ></v-slider>
+      </div>
     </div>
   </v-app>
 </template>
 
 <script lang="ts">
 import { MiniDSBase } from "@minids/common";
-import { SpreadSheetLayer } from "@wwtelescope/engine";
-import { AltUnits } from "@wwtelescope/engine-types";
+import { Color, SpreadSheetLayer } from "@wwtelescope/engine";
+import { AltUnits, CoordinatesType, MarkerScales } from "@wwtelescope/engine-types";
 import { defineComponent } from "vue";
-import { csv } from "d3-fetch";
+import { csvFormatRows, csvParse } from "d3-dsv";
 
 import radwaveData from "./assets/RW_dust_oscillation_phase.csv";
 
@@ -26,17 +36,34 @@ const R2D = 180.0 / Math.PI;
 
 type SheetType = "text" | "video" | null;
 
-async function parseCsvTable(path: string) {
-  return csv(path, (d) => {
+function parseCsvTable(string: string, phase: number) {
+  return csvParse(string, (d) => {
+    const rowPhase = +(d.phase ?? "-1");
+    if (phase !== rowPhase) {
+      return null;
+    }
     return {
-      name: d.name,
-      l: +(d.l ?? ""),
-      b: +(d.b ?? ""),
-      d50: +(d.d50 ?? ""),
-      ra: +(d.ra ?? ""),
-      dec: +(d.dec ?? "")
+      phase,
+      x: +(d.x ?? ""),
+      y: +(d.y ?? ""),
+      z: +(d.z ?? ""),
     };
   });
+}
+
+type Table = ReturnType<typeof parseCsvTable>;
+
+function formatCsvTable(table: Table): string {
+  return csvFormatRows([[
+    "phase", "x", "y", "z"
+  ]].concat(table.map((d, _i) => {
+    return [
+      d.phase.toString(),
+      d.x.toString(),
+      d.y.toString(),
+      d.z.toString(),
+    ];
+  }))).replace(/\n/g, '\r\n'); // WWT needs CRLF
 }
 
 export default defineComponent({
@@ -44,7 +71,6 @@ export default defineComponent({
 
   async mounted() {
     console.log(this);
-    const data = radwaveData.replace(/,/g, '\t').replace(/\n/g, '\r\n');  // WWT needs CRLF
     this.waitForReady().then(async () => {
       this.setBackgroundImageByName("Solar System");
       this.setForegroundImageByName("Solar System");
@@ -57,16 +83,7 @@ export default defineComponent({
         zoomDeg: 6e9,
         instant: true
       });
-      const layer = await this.createTableLayer({
-        name: "Radcliffe Wave",
-        referenceFrame: "Sky",
-        dataCsv: data 
-      });
-      layer.set_xAxisColumn(1);
-      layer.set_yAxisColumn(2);
-      layer.set_zAxisColumn(3);
-      layer.set_altUnit(AltUnits.parsecs);
-      console.log(layer);
+      this.updateLayer(this.phase);
     });
   },
 
@@ -74,7 +91,8 @@ export default defineComponent({
     return {
       sheet: null as SheetType,
       showTextTooltip: false,
-      majorCatalogsLayer: null as SpreadSheetLayer | null
+      layer: null as SpreadSheetLayer | null,
+      phase: 0
     };
   },
 
@@ -106,6 +124,34 @@ export default defineComponent({
       } else {
         this.sheet = name;
       }
+    },
+
+    async updateLayer(phase: number) {
+      if (this.layer !== null) {
+        this.deleteLayer(this.layer.id);
+      }
+      const table = parseCsvTable(radwaveData, phase);
+      const data = formatCsvTable(table);
+      this.layer = await this.createTableLayer({
+        name: "Radcliffe Wave",
+        referenceFrame: "Sky",
+        dataCsv: data 
+      });
+      this.layer.set_xAxisColumn(1);
+      this.layer.set_yAxisColumn(2);
+      this.layer.set_zAxisColumn(3);
+      this.layer.set_coordinatesType(CoordinatesType.rectangular);
+      this.layer.set_cartesianScale(AltUnits.parsecs);
+      this.layer.set_color(Color.load("#ff0000"));
+      this.layer.set_showFarSide(true);
+      this.layer.set_scaleFactor(25);
+      this.layer.set_markerScale(MarkerScales.screen);
+    }
+  },
+
+  watch: {
+    phase(phase: number) {
+      this.updateLayer(phase);    
     }
   }
 });
@@ -163,5 +209,11 @@ body {
   }
 }
 
+.bottom-content {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  width: calc(100% - 2rem);
+}
 
 </style>
