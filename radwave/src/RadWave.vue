@@ -16,7 +16,7 @@
           v-model="phase"
           min="0"
           max="360"
-          step="10"
+          step="1"
         ></v-slider>
       </div>
     </div>
@@ -26,11 +26,11 @@
 <script lang="ts">
 import { MiniDSBase } from "@minids/common";
 import { Color, SpreadSheetLayer } from "@wwtelescope/engine";
-import { AltUnits, CoordinatesType, MarkerScales } from "@wwtelescope/engine-types";
+import { AltTypes, AltUnits, MarkerScales, RAUnits } from "@wwtelescope/engine-types";
 import { defineComponent } from "vue";
 import { csvFormatRows, csvParse } from "d3-dsv";
 
-import radwaveData from "./assets/RW_dust_oscillation_phase.csv";
+import radwaveData from "./assets/RW_dust_oscillation_phase_updated_radec.csv";
 
 const R2D = 180.0 / Math.PI;
 
@@ -44,9 +44,9 @@ function parseCsvTable(string: string, phase: number) {
     }
     return {
       phase,
-      x: +(d.x ?? ""),
-      y: +(d.y ?? ""),
-      z: +(d.z ?? ""),
+      d: +(d.d ?? ""),
+      ra: +(d.ra ?? ""),
+      dec: +(d.dec ?? ""),
     };
   });
 }
@@ -55,13 +55,13 @@ type Table = ReturnType<typeof parseCsvTable>;
 
 function formatCsvTable(table: Table): string {
   return csvFormatRows([[
-    "phase", "x", "y", "z"
+    "phase", "x", "y", "z", "l", "b", "d"
   ]].concat(table.map((d, _i) => {
     return [
       d.phase.toString(),
-      d.x.toString(),
-      d.y.toString(),
-      d.z.toString(),
+      d.d.toString(),
+      d.ra.toString(),
+      d.dec.toString(),
     ];
   }))).replace(/\n/g, '\r\n'); // WWT needs CRLF
 }
@@ -137,11 +137,12 @@ export default defineComponent({
         referenceFrame: "Sky",
         dataCsv: data 
       });
-      this.layer.set_xAxisColumn(1);
-      this.layer.set_yAxisColumn(2);
-      this.layer.set_zAxisColumn(3);
-      this.layer.set_coordinatesType(CoordinatesType.rectangular);
-      this.layer.set_cartesianScale(AltUnits.parsecs);
+      this.layer.set_lngColumn(2);
+      this.layer.set_latColumn(3);
+      this.layer.set_altColumn(1);
+      this.layer.set_raUnits(RAUnits.degrees);
+      this.layer.set_altUnit(AltUnits.parsecs);
+      this.layer.set_altType(AltTypes.distance);
       this.layer.set_color(Color.load("#ff0000"));
       this.layer.set_showFarSide(true);
       this.layer.set_scaleFactor(25);
