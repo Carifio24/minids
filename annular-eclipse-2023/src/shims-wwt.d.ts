@@ -25,4 +25,8 @@ declare module "@wwtelescope/engine" {
     static getPushPinTexture(pinId: number): Texture;
   }
 
+  export class Planets {
+    static drawPlanets(renderContext: RenderContext, opacity: number): void;
+  }
+
 }

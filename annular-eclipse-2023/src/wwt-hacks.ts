@@ -5,7 +5,7 @@
 
 import {
   Color, Colors, Constellations, Coordinates, Grids,
-  LayerManager, LayerMap, PushPin, Settings, SpaceTimeController,
+  LayerManager, LayerMap, Planets, PushPin, RenderContext, Settings, SpaceTimeController,
   SpreadSheetLayer, Text3d, Text3dBatch, URLHelpers,
   Vector3d, WWTControl
 } from "@wwtelescope/engine";
@@ -238,4 +238,40 @@ export function updateViewParameters() {
    this.renderContext.viewCamera.zoom = dc * this.renderContext.viewCamera.zoom + oneMinusDragCoefficient * this.renderContext.targetCamera.zoom;
    this.renderContext.viewCamera.rotation = dc * this.renderContext.viewCamera.rotation + oneMinusDragCoefficient * this.renderContext.targetCamera.rotation;
    this.renderContext.viewCamera.angle = dc * this.renderContext.viewCamera.angle + oneMinusDragCoefficient * this.renderContext.targetCamera.angle;
+}
+
+export function drawPlanets(renderContext: RenderContext, opacity: number) {
+  if (Planets._planetTextures == null) {
+      Planets._loadPlanetTextures();
+    }
+    var elong = Planets._geocentricElongation(Planets._planetLocations[9].RA, Planets._planetLocations[9].dec, Planets._planetLocations[0].RA, Planets._planetLocations[0].dec);
+    var raDif = Planets._planetLocations[9].RA - Planets._planetLocations[0].RA;
+    if (Planets._planetLocations[9].RA < Planets._planetLocations[0].RA) {
+      raDif += 24;
+    }
+    var phaseAngle = Planets._phaseAngle(elong, Planets._planetLocations[9].distance, Planets._planetLocations[0].distance);
+    var limbAngle = Planets._positionAngle(Planets._planetLocations[9].RA, Planets._planetLocations[9].dec, Planets._planetLocations[0].RA, Planets._planetLocations[0].dec);
+    if (raDif < 12) {
+      phaseAngle += 180;
+    }
+    var dista = (Math.abs(Planets._planetLocations[9].RA - Planets._planetLocations[0].RA) * 15) * Math.cos(Coordinates.degreesToRadians(Planets._planetLocations[0].dec));
+    var distb = Math.abs(Planets._planetLocations[9].dec - Planets._planetLocations[0].dec);
+    var sunMoonDist = Math.sqrt(dista * dista + distb * distb);
+    var eclipse = false;
+    var coronaOpacity = 0;
+    var moonEffect = (Planets._planetScales[9] / 2 - sunMoonDist);
+    var darkLimb = Math.min(32, sunMoonDist * 32);
+    if (moonEffect > (Planets._planetScales[0] / 4)) {
+      eclipse = true;
+      coronaOpacity = Math.min(1, (moonEffect - (Planets._planetScales[0] / 2)) / 0.001);
+      Planets._drawPlanet(renderContext, 18, coronaOpacity);
+    }
+    for (const key in Planets._planetDrawOrder) {
+      var planetId = Planets._planetDrawOrder[key];
+      // 0: Sun, 9: Moon, 19: Earth
+      if ([0, 9, 19].includes(planetId)) {
+        Planets._drawPlanet(renderContext, planetId, 1);
+      }
+    }
+    return true;
 }
