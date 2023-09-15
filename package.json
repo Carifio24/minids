@@ -26,5 +26,10 @@
     "@types/chai": "^4.3.4",
     "rimraf": "^4.1.0",
     "tslib": "latest"
-  }
+  },
+  "nohoist": [
+    "annular-eclipse-2023/@wwtelescope/engine/**",
+    "green-comet/@wwtelescope/engine/**",
+    "pinwheel-supernova/@wwtelescope/engine/**"
+  ]
 }

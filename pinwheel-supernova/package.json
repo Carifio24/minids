@@ -6,6 +6,7 @@
     "@minids/common": "workspace:0.0.0",
     "@vuepic/vue-datepicker": "^3.6.5",
     "@wwtelescope/astro": "^0.2.2",
+    "@wwtelescope/engine": "7.28.0",
     "assert": "^2.0.0",
     "chart.js": "^4.3.0",
     "d3": "^7.8.4",

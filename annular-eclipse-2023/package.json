@@ -6,15 +6,16 @@
     "@fortawesome/free-solid-svg-icons": "^6.4.2",
     "@fortawesome/vue-fontawesome": "^3.0.3",
     "@minids/common": "workspace:0.0.0",
+    "@wwtelescope/engine": "7.28.0",
     "vue": "^3.3.4",
     "vuetify": "^3.3.14",
     "webpack-plugin-vuetify": "^2.0.1"
   },
   "scripts": {
-    "build": "./patch.sh; vue-cli-service build",
+    "build": "chmod +x ./patch.sh; ./patch.sh; vue-cli-service build",
     "clean": "rimraf dist",
     "lint": "vue-cli-service lint src --no-fix",
-    "serve": "./patch.sh; vue-cli-service serve"
+    "serve": "chmod +x ./patch.sh; ./patch.sh; vue-cli-service serve"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.5.0",

@@ -520,6 +520,7 @@ __metadata:
     "@vue/cli-service": ^5.0.8
     "@vue/compiler-sfc": ^3.3.4
     "@vue/eslint-config-typescript": ^11.0.3
+    "@wwtelescope/engine": 7.28.0
     eslint: ^8.48.0
     eslint-plugin-vue: ^9.17.0
     less: ^4.2.0
@@ -603,6 +604,7 @@ __metadata:
     "@vue/eslint-config-typescript": ^11.0.2
     "@vuepic/vue-datepicker": ^3.6.5
     "@wwtelescope/astro": ^0.2.2
+    "@wwtelescope/engine": 7.28.0
     d3-dsv: ^3.0.1
     date-fns: ^2.29.3
     date-fns-tz: ^2.0.0
@@ -644,6 +646,7 @@ __metadata:
     "@vue/eslint-config-typescript": ^11.0.2
     "@vuepic/vue-datepicker": ^3.6.5
     "@wwtelescope/astro": ^0.2.2
+    "@wwtelescope/engine": 7.28.0
     assert: ^2.0.0
     chart.js: ^4.3.0
     d3: ^7.8.4
@@ -2351,6 +2354,17 @@ __metadata:
   version: 0.6.5
   resolution: "@wwtelescope/engine-types@npm:0.6.5"
   checksum: d573436c8a8c5ce7d25f6ba3788d03c713c572f150805e2962600f577cb70dfb88514a9e503e214dfa81432e849f36bdc435d3c081de3867a641a24399638c85
+  languageName: node
+  linkType: hard
+
+"@wwtelescope/engine@npm:7.28.0":
+  version: 7.28.0
+  resolution: "@wwtelescope/engine@npm:7.28.0"
+  dependencies:
+    "@wwtelescope/engine-types": ">=0.6.0"
+    pako: ^1.0.11
+    uuid: ^8.3.2
+  checksum: d4d7ff823e91bf6337ab1c10af203730bfad6d531bf73c38e0e592dcb53cc0c55fa0042e9ccfabf85c3cf69a6189fe3518e74298979124012c8aabeffae70be7
   languageName: node
   linkType: hard
 
