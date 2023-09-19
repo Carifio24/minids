@@ -378,7 +378,10 @@ import { defineComponent, PropType } from "vue";
 import { MiniDSBase, BackgroundImageset, skyBackgroundImagesets } from "@minids/common";
 import { GotoRADecZoomParams } from "@wwtelescope/engine-pinia";
 import { Classification, SolarSystemObjects } from "@wwtelescope/engine-types";
-import { Constellations, Folder, Grids, LayerManager, Poly, Settings, WWTControl, Place } from "@wwtelescope/engine";
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { Constellations, Folder, Grids, LayerManager, Poly, Settings, WWTControl, Place, Planets, Texture } from "@wwtelescope/engine";
 import { Annotation2, Poly2 } from "./Annotation2";
 
 import { getTimezoneOffset } from "date-fns-tz";
@@ -648,6 +651,15 @@ export default defineComponent({
       this.setClockRate(1); //
 
       setTimeout(() => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const planets = Planets;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        planets['_planetTextures'][9] = Texture.fromUrl("https://freepngimg.com/thumb/pizza/9-pizza-png-image.png");
+
         this.trackSun().then(() => this.positionSet = true);
         this.setForegroundImageByName("DSS (Digitized Sky Survey");
         this.setBackgroundImageByName("Black Sky Background");
