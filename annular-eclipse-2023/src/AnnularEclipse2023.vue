@@ -676,6 +676,8 @@ export default defineComponent({
     sunPlace.set_target(SolarSystemObjects.sun);
     sunPlace.set_zoomLevel(20);
 
+    const startingLocation = "Albuquerque, NM";
+
     return {
       showSplashScreen: true,
       backgroundImagesets: [] as BackgroundImageset[],
@@ -704,7 +706,8 @@ export default defineComponent({
         latitudeRad: D2R * 35.106766,
         longitudeRad: D2R * -106.629181
       } as LocationRad,
-      selectedLocation: "Albuquerque, NM",
+      selectedLocation: startingLocation,
+      selectedLocationText: startingLocation,
       locationErrorMessage: "",
       
       syncDateTimeWithWWTCurrentTime: true,
@@ -986,17 +989,7 @@ export default defineComponent({
       }
     },
 
-    selectedLocationText(): string {
-      if (this.selectedLocation !== 'User Selected') {
-        return this.selectedLocation;
-      } else {
-        const ns = this.locationDeg.latitudeDeg >= 0 ? 'N' : 'S';
-        const ew = this.locationDeg.longitudeDeg >= 0 ? 'E' : 'W';
-        const lat = Math.abs(this.locationDeg.latitudeDeg).toFixed(3);
-        const lon = Math.abs(this.locationDeg.longitudeDeg).toFixed(3);
-        return `${lat}° ${ns}, ${lon}° ${ew}`;
-      }
-    }
+
   },
 
   methods: {
@@ -1109,6 +1102,32 @@ export default defineComponent({
         }
       });
 
+    },
+
+    async updateSelectedLocationText(): Promise<void> {
+      if (this.selectedLocation !== 'User Selected') {
+        this.selectedLocationText = this.selectedLocation;
+      } else {
+        const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${this.locationDeg.latitudeDeg}&longitude=${this.locationDeg.longitudeDeg}&localityLanguage=en`);
+        const json = await response.json();
+        const city = json?.city as string;
+        if (city) {
+          let suffix: string;
+          if (json?.principalSubdivisionCode?.startsWith("US-")) {
+            suffix = json.principalSubdivisionCode.slice(3) + ", USA";
+          } else {
+            suffix = json.countryName ?? "";
+          }
+          this.selectedLocationText = `${city}, ${suffix}`;
+          return;
+        }
+
+        const ns = this.locationDeg.latitudeDeg >= 0 ? 'N' : 'S';
+        const ew = this.locationDeg.longitudeDeg >= 0 ? 'E' : 'W';
+        const lat = Math.abs(this.locationDeg.latitudeDeg).toFixed(3);
+        const lon = Math.abs(this.locationDeg.longitudeDeg).toFixed(3);
+        this.selectedLocationText = `${lat}° ${ns}, ${lon}° ${ew}`;
+      }
     },
 
     onTimeSliderChange() {
@@ -1424,6 +1443,8 @@ export default defineComponent({
         Grids._altAzTextBatch = null;
       }
 
+      this.updateSelectedLocationText();
+
       this.selectedTimezone = tzlookup(...locationDeg);
       this.updateWWTLocation();
 
@@ -1439,6 +1460,7 @@ export default defineComponent({
         return;
       }
       console.log("selected location", locname);
+      this.updateSelectedLocationText();
     },
     
     playing(play: boolean) {
