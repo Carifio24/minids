@@ -15,6 +15,8 @@ export interface LocationDeg {
 
 interface MapOptions extends TileLayerOptions {
   templateUrl: string;
+  initialZoom?: number;
+  initialLocation?: LocationDeg;
 }
 
 interface Place extends LocationDeg { 
@@ -196,7 +198,10 @@ export default defineComponent({
 
     setup() {
       const mapContainer = this.$el as HTMLDivElement;
-      const map = L.map(mapContainer).setView([this.modelValue.latitudeDeg, this.modelValue.longitudeDeg], 4);
+      const location: [number, number] = this.mapOptions.initialLocation ?
+        [this.mapOptions.initialLocation.latitudeDeg, this.mapOptions.initialLocation.longitudeDeg] :
+        [this.modelValue.latitudeDeg, this.modelValue.longitudeDeg];
+      const map = L.map(mapContainer).setView(location, this.mapOptions.initialZoom ?? 4);
       
       const options = { minZoom: 1, maxZoom: 20, ...this.mapOptions };
       L.tileLayer(this.mapOptions.templateUrl, options).addTo(map);
