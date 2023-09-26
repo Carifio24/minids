@@ -791,6 +791,8 @@ export default defineComponent({
       positionSet: false,
       imagesetFolder: null as Folder | null,
 
+      trackingSun: false,
+
       showMapTooltip: false,
       showTextTooltip: false,
       showVideoTooltip: false,
@@ -993,6 +995,9 @@ export default defineComponent({
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
+      this.wwtControl.renderFrameCallback = this.onWWTRenderFrame;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       this.wwtControl.renderOneFrame = renderOneFrame.bind(this.wwtControl);
 
       this.updateWWTLocation();
@@ -1171,6 +1176,12 @@ export default defineComponent({
         noZoom: false,
         trackObject: true
       });
+    },
+
+    onWWTRenderFrame(wwtControl: WWTControl) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      this.trackingSun = wwtControl._trackingObject === this.sunPlace;
     },
 
     clearPlayingInterval() {

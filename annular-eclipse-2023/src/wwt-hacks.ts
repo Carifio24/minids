@@ -306,7 +306,7 @@ export function renderOneFrame() {
   Tile.tilesInView = 0;
   Tile.tilesTouched = 0;
   Tile.deepestLevel = 0;
-  SpaceTimeController.set_metaNow(Date.now());
+  SpaceTimeController.set_metaNow(new Date());
   if (this.get__mover() != null) {
     SpaceTimeController.set_now(this.get__mover().get_currentDateTime());
     Planets.updatePlanetLocations(this.get_solarSystemMode());
@@ -441,6 +441,10 @@ export function renderOneFrame() {
       SpaceTimeController.cancelFrameDump = false;
       this.capturingVideo = false;
     }
+  }
+
+  if (this.renderFrameCallback) {
+    this.renderFrameCallback(this);
   }
 
 }
