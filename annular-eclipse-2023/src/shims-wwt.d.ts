@@ -41,5 +41,9 @@ declare module "@wwtelescope/engine" {
 
   export class Planets {
     static _planetTextures: Texture[];
+
+    // Technically this is a list of AstroRaDec objects, but this is a good enough definition
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    static _planetLocations: { RA: number; dec: number }[];
   }
 }
