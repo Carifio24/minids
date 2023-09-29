@@ -757,7 +757,7 @@ import { defineComponent, PropType } from "vue";
 import { MiniDSBase, BackgroundImageset, skyBackgroundImagesets } from "@minids/common";
 import { GotoRADecZoomParams } from "@wwtelescope/engine-pinia";
 import { Classification, SolarSystemObjects } from "@wwtelescope/engine-types";
-import { Folder, Grids, LayerManager, Planets, Poly, Settings, WWTControl, Place, Texture } from "@wwtelescope/engine";
+import { Folder, Grids, LayerManager, Planets, Poly, Settings, WWTControl, Place, Texture, CAAMoon } from "@wwtelescope/engine";
 import { Annotation2, Poly2 } from "./Annotation2";
 
 import { getTimezoneOffset, formatInTimeZone } from "date-fns-tz";
@@ -867,7 +867,7 @@ export default defineComponent({
     sunPlace.set_names(["Sun"]);
     sunPlace.set_classification(Classification.solarSystem);   
     sunPlace.set_target(SolarSystemObjects.sun);
-    sunPlace.set_zoomLevel(20);
+    sunPlace.set_zoomLevel(5.2);
 
     const moonPlace = new Place();
     moonPlace.set_names(["Moon"]);
@@ -1176,6 +1176,8 @@ export default defineComponent({
       window.addEventListener('resize', this.onResize);
       this.onResize();
     });
+
+    setTimeout(() => this.createMoonOverlay(), 3000);
   },
 
   computed: {
@@ -1353,6 +1355,135 @@ export default defineComponent({
         noZoom: true,
         trackObject: this.trackingSun
       });
+    },
+
+    createMoonOverlay() {
+      console.log("Creating moon overlay");
+      console.log(Planets);
+      console.log(Planets['_planetLocations']);
+      // const initZoom = this.wwtZoomDeg;
+
+      const sunPosition = Planets['_planetLocations'][0];
+      const moonPosition = Planets['_planetLocations'][9];
+      const sunPoint = this.findScreenPointForRADec({ ra: sunPosition.RA * 15, dec: sunPosition.dec });
+      const moonPoint = this.findScreenPointForRADec({ ra: moonPosition.RA * 15, dec: moonPosition.dec });
+      sunPoint.x -= moonPoint.x;
+      sunPoint.y -= moonPoint.y;
+
+
+      const jd = this.getJulian(this.selectedDate);
+      const distanceToMoon = CAAMoon.radiusVector(jd);
+      // CAAMoon;
+      // const distanceToMoon = 385000;
+
+      const rMoon = 1740;  // radius of the moon in km
+      console.log(distanceToMoon);
+      console.log(rMoon);
+      const thetaMoon = Math.atan2(rMoon, distanceToMoon);
+      console.log(thetaMoon);
+      console.log(this.wwtZoomDeg * D2R);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      console.log(this.wwtControl.canvas.height);
+
+      // The factor of 6 comes from the relation between wwtZoomDeg and the actual size of the FOV in degrees
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const r = 6 * thetaMoon * this.wwtControl.canvas.height / (this.wwtZoomDeg * D2R);
+      console.log(r);
+      // const r = 2164 * Math.pow(this.wwtZoomDeg, -0.98553942146559) * (this.wwtControl.canvas.height / 971) / 2;
+
+      let x1: number;
+      let y1: number;
+      let xc: number;
+      let yc: number;
+      if (sunPoint.x === 0) {
+
+        const ysh = 0.5 * sunPoint.y;
+        if (ysh >= r) {
+          return;
+        }
+        x1 = Math.sqrt(r * r - ysh * ysh);
+        y1 = ysh;
+        xc = 0;
+        yc = ysh;
+
+      } else {
+
+        // m is the slope of the line joining the moon and the sun
+        // mPerp is the slope of a perpendicular line
+        // yInt is the y-intercept of the perpendicular bisector between Sun and Moon points
+        const m = sunPoint.y / sunPoint.x;
+        const mPerp = -sunPoint.x / sunPoint.y;
+        const yInt = ((sunPoint.x * sunPoint.x) + (sunPoint.y * sunPoint.y)) / (2 * sunPoint.y);
+
+        // Find the x-coordinates of the edge points of the moon-sun intersection
+        const a = (1 + mPerp * mPerp);
+        const b = 2 * mPerp * yInt;
+        const c = yInt * yInt - r * r;
+
+        const sqrDisc = Math.sqrt(b * b - 4 * a * c);
+        x1 = (-b + sqrDisc) / (2 * a);
+        // const x2 = (-b - sqrDisc) / (2 * a);
+        y1 = mPerp * x1 + yInt;
+        // const y2 = mPerp * x2 + yInt;
+
+        // Find the point at the edge of the moon along the line joining their centers
+        xc = r / Math.sqrt(1 + m * m);
+        if (sunPoint.x < 0) {
+          xc *= -1;
+        }
+        yc = m * xc;
+      }
+
+      // The standard-position angle of the sun-moon line in the moon's reference frame
+      const alpha = Math.atan2(sunPoint.y, sunPoint.x);
+
+      // Find (half of) the angular spread between the two edge points
+      const dIsq = x1 * x1 + y1 * y1;
+      const dI = Math.sqrt(dIsq);
+      const dCsq = xc * xc + yc * yc;
+      const dC = Math.sqrt(dCsq);
+      const dICsq = (x1 - xc) * (x1 - xc) + (y1 - yc) * (y1 - yc);
+      const cosTheta = (dIsq + dCsq - dICsq) / (2 * dI * dC);
+      const theta = Math.acos(cosTheta);
+
+      const points = [{x: 0, y: 0}];
+      // const range = [alpha - theta, alpha + theta];
+      const rangeSize = 2 * theta;
+      const n = 10;
+      for (let i = 0; i <= n; i++) {
+        const angle = alpha - theta + (i / n) * rangeSize;
+        console.log(angle);
+        points.push({ x: r * Math.cos(angle), y: r * Math.sin(angle) });
+      }
+
+      console.log(`alpha: ${alpha}`);
+      console.log(`theta: ${theta}`);
+
+      // We made a translation into the moon's frame, so undo that
+      for (let i = 0; i < points.length; i++) {
+        points[i].x += moonPoint.x;
+        points[i].y += moonPoint.y;
+      }
+
+      const centroidX = points.reduce((s, p) => s + p.x, 0) / points.length;
+      const centroidY = points.reduce((s, p) => s + p.y, 0) / points.length;
+
+      points.sort((p1, p2) => Math.atan2(p2.y - centroidY, p2.x - centroidX) - Math.atan2(p1.y - centroidY, p1.x - centroidX));
+
+      console.log(points);
+
+      const locations = points.map(pt => this.findRADecForScreenPoint(pt));
+      console.log(locations);
+      const overlay = new Poly2();
+      overlay.set_fill(true);
+      overlay.set_fillColor("#FF0000");
+      overlay.set_lineColor("#ff0000");
+      locations.forEach(pt => overlay.addPoint(pt.ra, pt.dec));
+      Annotation2.addAnnotation(overlay);
+      console.log(overlay);
+
     },
 
 
