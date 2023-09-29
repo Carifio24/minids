@@ -645,7 +645,7 @@ import { defineComponent, PropType } from "vue";
 import { MiniDSBase, BackgroundImageset, skyBackgroundImagesets } from "@minids/common";
 import { GotoRADecZoomParams } from "@wwtelescope/engine-pinia";
 import { Classification, SolarSystemObjects } from "@wwtelescope/engine-types";
-import { Folder, Grids, LayerManager, Planets, Poly, Settings, WWTControl, Place, Texture } from "@wwtelescope/engine";
+import { Folder, Grids, LayerManager, Planets, Poly, Settings, WWTControl, Place, Texture, CAAMoon } from "@wwtelescope/engine";
 import { Annotation2, Poly2 } from "./Annotation2";
 
 import { getTimezoneOffset, formatInTimeZone } from "date-fns-tz";
@@ -741,7 +741,7 @@ export default defineComponent({
           // RA/Dec of Sun in Albuquerque close to max annularity
           raRad: 3.481,
           decRad: -0.145,
-          zoomDeg: 1
+          zoomDeg: 5.187
         };
       },
     },
@@ -1172,10 +1172,28 @@ export default defineComponent({
       sunPoint.x -= moonPoint.x;
       sunPoint.y -= moonPoint.y;
 
+
+      const jd = this.getJulian(this.selectedDate);
+      const distanceToMoon = CAAMoon.radiusVector(jd);
+      // CAAMoon;
+      // const distanceToMoon = 385000;
+
+      const rMoon = 1740;  // radius of the moon in km
+      console.log(distanceToMoon);
+      console.log(rMoon);
+      const thetaMoon = Math.atan2(rMoon, distanceToMoon);
+      console.log(thetaMoon);
+      console.log(this.wwtZoomDeg * D2R);
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      const r = 2164 * Math.pow(this.wwtZoomDeg, -0.98553942146559) * (this.wwtControl.canvas.height / 971) / 2;
-      console.log(this.wwtZoomDeg, r);
+      console.log(this.wwtControl.canvas.height);
+
+      // The factor of 6 comes from the relation between wwtZoomDeg and the actual size of the FOV in degrees
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const r = 6 * thetaMoon * this.wwtControl.canvas.height / (this.wwtZoomDeg * D2R);
+      console.log(r);
+      // const r = 2164 * Math.pow(this.wwtZoomDeg, -0.98553942146559) * (this.wwtControl.canvas.height / 971) / 2;
 
       let x1: number;
       let y1: number;
@@ -1637,7 +1655,7 @@ export default defineComponent({
       this.showHorizon = true; // automatically calls it's watcher and updates horizon
       this.horizonOpacity = 1;
       // this.setForegroundImageByName("Digitized Sky Survey (Color)");
-      this.sunPlace.set_zoomLevel(2);
+      this.sunPlace.set_zoomLevel(5.18);
       this.gotoTarget({
         place: this.sunPlace,
         instant: true,

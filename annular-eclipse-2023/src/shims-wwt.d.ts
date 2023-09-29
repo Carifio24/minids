@@ -46,4 +46,8 @@ declare module "@wwtelescope/engine" {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     static _planetLocations: { RA: number; dec: number }[];
   }
+
+  export class CAAMoon {
+    static radiusVector(JD: number): number;
+  }
 }
