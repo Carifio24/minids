@@ -1400,6 +1400,8 @@ export default defineComponent({
 
       let x1: number;
       let y1: number;
+      let x2: number;
+      let y2: number;
       let xc: number;
       let yc: number;
       if (sunPoint.x === 0) {
@@ -1410,6 +1412,8 @@ export default defineComponent({
         }
         x1 = Math.sqrt(rMoonPx * rMoonPx - ysh * ysh);
         y1 = ysh;
+        x2 = -x1;
+        y2 = ysh;
         xc = 0;
         yc = ysh;
 
@@ -1429,9 +1433,9 @@ export default defineComponent({
 
         const sqrDisc = Math.sqrt(b * b - 4 * a * c);
         x1 = (-b + sqrDisc) / (2 * a);
-        // const x2 = (-b - sqrDisc) / (2 * a);
+        x2 = (-b - sqrDisc) / (2 * a);
         y1 = mPerp * x1 + yInt;
-        // const y2 = mPerp * x2 + yInt;
+        y2 = mPerp * x2 + yInt;
 
         // Find the point at the edge of the moon along the line joining their centers
         xc = rMoonPx / Math.sqrt(1 + m * m);
@@ -1468,29 +1472,15 @@ export default defineComponent({
 
       // We now need to somewhat repeat this analysis in the Sun frame
 
-      // The standard-position angle of the sun-moon line in the sun's reference frame
-      const alphaS = 2 * Math.PI - alpha;
+      const thetaS1 = Math.atan2(y1 - sunPoint.y, x1 - sunPoint.x);
+      const thetaS2 = Math.atan2(y2 - sunPoint.y, x2 - sunPoint.x);
 
-      // Find (half of) the angular spread between the two edge points
-      const xcs = (rSunPx / rMoonPx) * xc - sunPoint.x;
-      const ycs = (rSunPx / rMoonPx) * yc - sunPoint.y;
-      console.log(xcs * xcs + ycs * ycs, rSunPx);
-      const x1s = x1 - sunPoint.x;
-      const y1s = y1 - sunPoint.y;
-      const dIsqS = x1s * x1s + y1s * y1s;
-      const dIS = Math.sqrt(dIsqS);
-      const dCsqS = xcs * xcs + ycs * ycs;
-      const dCS = Math.sqrt(dCsqS);
-      const dICsqS = (x1s - xcs) * (x1s - xcs) + (y1s - ycs) * (y1s - ycs);
-      const cosThetaS = (dIsqS + dCsqS - dICsqS) / (2 * dIS * dCS);
-      const thetaS = Math.acos(cosThetaS);
+      console.log(`thetaS1: ${thetaS1}`);
+      console.log(`thetaS2: ${thetaS2}`);
 
-      console.log(`alphaS: ${alphaS}`);
-      console.log(`thetaS: ${thetaS}`);
-
-      const rangeSizeS = 2 * thetaS;
+      const rangeSizeS = thetaS2 - thetaS1;
       for (let i = 0; i <= n; i++) {
-        const angle = alphaS - thetaS + (i / n) * rangeSizeS;
+        const angle = thetaS1 + (i / n) * rangeSizeS;
         points.push({ x: rSunPx * Math.cos(angle) + sunPoint.x, y: rSunPx * Math.sin(angle) + sunPoint.y });
       }
 
