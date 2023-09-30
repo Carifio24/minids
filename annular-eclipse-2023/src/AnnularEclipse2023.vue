@@ -1453,7 +1453,7 @@ export default defineComponent({
       const cosTheta = (dIsq + dCsq - dICsq) / (2 * dI * dC);
       const theta = Math.acos(cosTheta);
 
-      const points = [{x: 0, y: 0}];
+      const points: { x: number; y: number }[] = [];
       // const range = [alpha - theta, alpha + theta];
       const rangeSize = 2 * theta;
       const n = 10;
@@ -1465,6 +1465,34 @@ export default defineComponent({
 
       console.log(`alpha: ${alpha}`);
       console.log(`theta: ${theta}`);
+
+      // We now need to somewhat repeat this analysis in the Sun frame
+
+      // The standard-position angle of the sun-moon line in the sun's reference frame
+      const alphaS = 2 * Math.PI - alpha;
+
+      // Find (half of) the angular spread between the two edge points
+      const xcs = (rSunPx / rMoonPx) * xc - sunPoint.x;
+      const ycs = (rSunPx / rMoonPx) * yc - sunPoint.y;
+      console.log(xcs * xcs + ycs * ycs, rSunPx);
+      const x1s = x1 - sunPoint.x;
+      const y1s = y1 - sunPoint.y;
+      const dIsqS = x1s * x1s + y1s * y1s;
+      const dIS = Math.sqrt(dIsqS);
+      const dCsqS = xcs * xcs + ycs * ycs;
+      const dCS = Math.sqrt(dCsqS);
+      const dICsqS = (x1s - xcs) * (x1s - xcs) + (y1s - ycs) * (y1s - ycs);
+      const cosThetaS = (dIsqS + dCsqS - dICsqS) / (2 * dIS * dCS);
+      const thetaS = Math.acos(cosThetaS);
+
+      console.log(`alphaS: ${alphaS}`);
+      console.log(`thetaS: ${thetaS}`);
+
+      const rangeSizeS = 2 * thetaS;
+      for (let i = 0; i <= n; i++) {
+        const angle = alphaS - thetaS + (i / n) * rangeSizeS;
+        points.push({ x: rSunPx * Math.cos(angle) + sunPoint.x, y: rSunPx * Math.sin(angle) + sunPoint.y });
+      }
 
       // We made a translation into the moon's frame, so undo that
       for (let i = 0; i < points.length; i++) {
