@@ -1373,13 +1373,14 @@ export default defineComponent({
 
       const jd = this.getJulian(this.selectedDate);
       const distanceToMoon = CAAMoon.radiusVector(jd);
-      // CAAMoon;
-      // const distanceToMoon = 385000;
+      const distanceToSun = 149_597_871;
 
       const rMoon = 1740;  // radius of the moon in km
+      const rSun = 696_340;
       console.log(distanceToMoon);
       console.log(rMoon);
       const thetaMoon = Math.atan2(rMoon, distanceToMoon);
+      const thetaSun = Math.atan2(rSun, distanceToSun);
       console.log(thetaMoon);
       console.log(this.wwtZoomDeg * D2R);
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -1389,8 +1390,12 @@ export default defineComponent({
       // The factor of 6 comes from the relation between wwtZoomDeg and the actual size of the FOV in degrees
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      const r = 6 * thetaMoon * this.wwtControl.canvas.height / (this.wwtZoomDeg * D2R);
-      console.log(r);
+      const rMoonPx = 6 * thetaMoon * this.wwtControl.canvas.height / (this.wwtZoomDeg * D2R);
+      console.log(rMoonPx);
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const rSunPx = 6 * thetaSun * this.wwtControl.canvas.height / (this.wwtZoomDeg * D2R);
       // const r = 2164 * Math.pow(this.wwtZoomDeg, -0.98553942146559) * (this.wwtControl.canvas.height / 971) / 2;
 
       let x1: number;
@@ -1400,10 +1405,10 @@ export default defineComponent({
       if (sunPoint.x === 0) {
 
         const ysh = 0.5 * sunPoint.y;
-        if (ysh >= r) {
+        if (ysh >= rMoonPx) {
           return;
         }
-        x1 = Math.sqrt(r * r - ysh * ysh);
+        x1 = Math.sqrt(rMoonPx * rMoonPx - ysh * ysh);
         y1 = ysh;
         xc = 0;
         yc = ysh;
@@ -1415,12 +1420,12 @@ export default defineComponent({
         // yInt is the y-intercept of the perpendicular bisector between Sun and Moon points
         const m = sunPoint.y / sunPoint.x;
         const mPerp = -sunPoint.x / sunPoint.y;
-        const yInt = ((sunPoint.x * sunPoint.x) + (sunPoint.y * sunPoint.y)) / (2 * sunPoint.y);
+        const yInt = (sunPoint.x * sunPoint.x + sunPoint.y * sunPoint.y - (rSunPx * rSunPx - rMoonPx * rMoonPx)) / (2 * sunPoint.y);
 
         // Find the x-coordinates of the edge points of the moon-sun intersection
         const a = (1 + mPerp * mPerp);
         const b = 2 * mPerp * yInt;
-        const c = yInt * yInt - r * r;
+        const c = yInt * yInt - rMoonPx * rMoonPx;
 
         const sqrDisc = Math.sqrt(b * b - 4 * a * c);
         x1 = (-b + sqrDisc) / (2 * a);
@@ -1429,7 +1434,7 @@ export default defineComponent({
         // const y2 = mPerp * x2 + yInt;
 
         // Find the point at the edge of the moon along the line joining their centers
-        xc = r / Math.sqrt(1 + m * m);
+        xc = rMoonPx / Math.sqrt(1 + m * m);
         if (sunPoint.x < 0) {
           xc *= -1;
         }
@@ -1455,7 +1460,7 @@ export default defineComponent({
       for (let i = 0; i <= n; i++) {
         const angle = alpha - theta + (i / n) * rangeSize;
         console.log(angle);
-        points.push({ x: r * Math.cos(angle), y: r * Math.sin(angle) });
+        points.push({ x: rMoonPx * Math.cos(angle), y: rMoonPx * Math.sin(angle) });
       }
 
       console.log(`alpha: ${alpha}`);
