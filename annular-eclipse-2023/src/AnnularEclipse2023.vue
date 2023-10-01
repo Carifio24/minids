@@ -1469,33 +1469,40 @@ export default defineComponent({
           xc *= -1;
         }
         yc = m * xc;
+        yc;
       }
 
       // The standard-position angle of the sun-moon line in the moon's reference frame
-      const alpha = Math.atan2(sunPoint.y, sunPoint.x);
+      const alpha = this.angleInZeroToTwoPi(Math.atan2(sunPoint.y, sunPoint.x));
       console.log(sunPoint);
 
-      // Find (half of) the angular spread between the two edge points
-      const dIsq = x1 * x1 + y1 * y1;
-      const dI = Math.sqrt(dIsq);
-      const dCsq = xc * xc + yc * yc;
-      const dC = Math.sqrt(dCsq);
-      const dICsq = (x1 - xc) * (x1 - xc) + (y1 - yc) * (y1 - yc);
-      const cosTheta = (dIsq + dCsq - dICsq) / (2 * dI * dC);
-      const theta = Math.acos(cosTheta);
+      let theta1 = Math.atan2(y1 / rMoonPx, x1 / rMoonPx);
+      let theta2 = Math.atan2(y2 / rMoonPx, x2 / rMoonPx);
+      theta1 = this.angleInZeroToTwoPi(theta1);
+      theta2 = this.angleInZeroToTwoPi(theta2);
+      console.log(alpha, theta1, theta2, this.angleBetween(alpha, theta1, theta2));
+      if (!this.angleBetween(alpha, theta1, theta2)) {
+        const t = theta1;
+        theta1 = theta2;
+        theta2 = t;
+      }
+
+      if (theta1 > theta2) {
+        theta1 -= 2 * Math.PI;
+      }
 
       const points: { x: number; y: number }[] = [];
-      const rangeSize = 2 * theta;
-
+      const rangeSize = theta2 - theta1;
       const n = 10;
       for (let i = 0; i <= n; i++) {
-        const angle = alpha - theta + (i / n) * rangeSize;
+        const angle = theta1 + (i / n) * rangeSize;
         // console.log(`angle: ${angle}`);
         points.push({ x: rMoonPx * Math.cos(angle), y: rMoonPx * Math.sin(angle) });
       }
 
       console.log(`alpha: ${alpha}`);
-      console.log(`theta: ${theta}`);
+      console.log(`theta1: ${theta1}`);
+      console.log(`theta2: ${theta2}`);
 
       // We now need to somewhat repeat this analysis in the Sun frame
 
