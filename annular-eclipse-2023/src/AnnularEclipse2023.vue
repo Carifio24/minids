@@ -1360,8 +1360,19 @@ export default defineComponent({
       });
     },
 
-    between(test: number, lower: number, upper: number): boolean {
-      return test > lower && test < upper;
+    angleInZeroToTwoPi(angle: number): number {
+      const twoPi = 2 * Math.PI;
+      return ((angle% twoPi) + twoPi) % twoPi;
+    },
+
+    // This assumes that the input angles are in the range [0, 2pi)
+    angleBetween(test: number, lower: number, upper: number): boolean {
+      console.log(test, lower, upper);
+      if (lower < upper) {
+        return test >= lower && test <= upper;
+      } else {
+        return test >= lower || test <= upper;
+      }
     },
 
     createMoonOverlay() {
@@ -1490,20 +1501,11 @@ export default defineComponent({
 
       let thetaS1 = Math.atan2((y1 - sunPoint.y) / rSunPx, (x1 - sunPoint.x) / rSunPx);
       let thetaS2 = Math.atan2((y2 - sunPoint.y) / rSunPx, (x2 - sunPoint.x) / rSunPx);
-      let alphaS = Math.PI + alpha;
-      if (alphaS < 0) {
-        alphaS += 2 * Math.PI;
-      }
-      if (thetaS1 < 0) {
-        thetaS1 += 2 * Math.PI;
-      }
-      if (thetaS2 < 0) {
-        thetaS2 += 2 * Math.PI;
-      }
-      console.log(alphaS, thetaS1, thetaS2);
-      if (!(this.between(alphaS, thetaS1, thetaS2) ||
-            this.between(alphaS + 2 * Math.PI, thetaS1, thetaS2) ||
-            this.between(alphaS - 2 * Math.PI, thetaS1, thetaS2))) {
+      thetaS1 = this.angleInZeroToTwoPi(thetaS1);
+      thetaS2 = this.angleInZeroToTwoPi(thetaS2);
+      const alphaS = this.angleInZeroToTwoPi(Math.PI + alpha);
+      console.log(alphaS, thetaS1, thetaS2, this.angleBetween(alphaS, thetaS1, thetaS2));
+      if (!this.angleBetween(alphaS, thetaS1, thetaS2)) {
         const t = thetaS1;
         thetaS1 = thetaS2;
         thetaS2 = t;
@@ -1513,6 +1515,9 @@ export default defineComponent({
       console.log(`thetaS1: ${thetaS1}`);
       console.log(`thetaS2: ${thetaS2}`);
 
+      if (thetaS1 > thetaS2) {
+        thetaS1 -= 2 * Math.PI;
+      }
       const rangeSizeS = thetaS2 - thetaS1;
       for (let i = 0; i <= n; i++) {
         const angle = thetaS1 + (i / n) * rangeSizeS;
