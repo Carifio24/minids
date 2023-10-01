@@ -1391,8 +1391,6 @@ export default defineComponent({
       const thetaSun = Math.atan2(rSun, distanceToSun);
       console.log(thetaMoon);
       console.log(this.wwtZoomDeg * D2R);
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       console.log(canvasHeight);
 
       // The factor of 6 comes from the relation between wwtZoomDeg and the actual size of the FOV in degrees
@@ -1484,14 +1482,7 @@ export default defineComponent({
       if (alphaS < 0) {
         alphaS += 2 * Math.PI;
       }
-      const xs = sunPoint.x;
-      const ys = sunPoint.y;
-      const dIsqS = (x1 - xs) * (x1 - xs) + (y1 - ys) * (y1 - ys);
-      const dIS = Math.sqrt(dIsqS);
-      const dCsqS = (xc - xs) * (xc - xs) + (yc - ys) * (yc - ys);
-      const dCS = Math.sqrt(dCsqS);
-      const cosThetaS = (dIsqS + dCsqS - dICsq) / (2 * dIS * dCS); 
-      const thetaS = Math.acos(cosThetaS);
+      const thetaS = Math.atan2(y1 - sunPoint.y, x1 - sunPoint.x) - alphaS;
 
       console.log(`thetaS: ${thetaS}`);
       console.log(`alphaS: ${alphaS}`);
