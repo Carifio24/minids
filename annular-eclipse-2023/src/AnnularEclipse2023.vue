@@ -1374,10 +1374,11 @@ export default defineComponent({
       const moonPosition = Planets['_planetLocations'][9];
       const sunPoint = this.findScreenPointForRADec({ ra: sunPosition.RA * 15, dec: sunPosition.dec });
       const moonPoint = this.findScreenPointForRADec({ ra: moonPosition.RA * 15, dec: moonPosition.dec });
+      console.log(sunPoint);
+      console.log(moonPoint);
       moonPoint.y = canvasHeight - moonPoint.y;
       sunPoint.x -= moonPoint.x;
       sunPoint.y = canvasHeight - sunPoint.y - moonPoint.y;
-
 
       const jd = this.getJulian(this.selectedDate);
       const distanceToMoon = CAAMoon.radiusVector(jd);
@@ -1400,8 +1401,8 @@ export default defineComponent({
 
       let x1: number;
       let y1: number;
-      // let x2: number;
-      // let y2: number;
+      let x2: number;
+      let y2: number;
       let xc: number;
       let yc: number;
       if (sunPoint.x === 0) {
@@ -1412,11 +1413,13 @@ export default defineComponent({
         }
         x1 = Math.sqrt(rMoonPx * rMoonPx - ysh * ysh);
         if (isNaN(x1)) {
+          console.log("x1 isNan");
+          console.log(rMoonPx, ysh);
           return;
         }
         y1 = ysh;
-        // x2 = -x1;
-        // y2 = ysh;
+        x2 = -x1;
+        y2 = ysh;
         xc = 0;
         yc = ysh;
 
@@ -1436,12 +1439,14 @@ export default defineComponent({
 
         const sqrDisc = Math.sqrt(b * b - 4 * a * c);
         if (isNaN(sqrDisc)) {
+          console.log("sqrDisc isNan");
+          console.log(a, b, c);
           return;
         }
         x1 = (-b + sqrDisc) / (2 * a);
-        // x2 = (-b - sqrDisc) / (2 * a);
+        x2 = (-b - sqrDisc) / (2 * a);
         y1 = mPerp * x1 + yInt;
-        // y2 = mPerp * x2 + yInt;
+        y2 = mPerp * x2 + yInt;
 
         // Find the point at the edge of the moon along the line joining their centers
         xc = rMoonPx / Math.sqrt(1 + m * m);
@@ -1466,6 +1471,7 @@ export default defineComponent({
 
       const points: { x: number; y: number }[] = [];
       const rangeSize = 2 * theta;
+
       const n = 10;
       for (let i = 0; i <= n; i++) {
         const angle = alpha - theta + (i / n) * rangeSize;
@@ -1478,18 +1484,27 @@ export default defineComponent({
 
       // We now need to somewhat repeat this analysis in the Sun frame
 
-      let alphaS = Math.PI + alpha;
-      if (alphaS < 0) {
-        alphaS += 2 * Math.PI;
+      let thetaS1 = Math.atan2((y1 - sunPoint.y) / rSunPx, (x1 - sunPoint.x) / rSunPx);
+      let thetaS2 = Math.atan2((y2 - sunPoint.y) / rSunPx, (x2 - sunPoint.x) / rSunPx);
+      if (thetaS1 < 0) {
+        thetaS1 += 2 * Math.PI;
       }
-      const thetaS = Math.atan2(y1 - sunPoint.y, x1 - sunPoint.x) - alphaS;
+      if (thetaS2 < 0) {
+        thetaS2 += 2 * Math.PI;
+      }
+      const alphaS = Math.PI + alpha;
+      if (thetaS1 > alphaS) {
+        const t = thetaS1;
+        thetaS1 = thetaS2;
+        thetaS2 = t;
+      }
 
-      console.log(`thetaS: ${thetaS}`);
-      console.log(`alphaS: ${alphaS}`);
+      console.log(`thetaS1: ${thetaS1}`);
+      console.log(`thetaS2: ${thetaS2}`);
 
-      const rangeSizeS = 2 * thetaS;
+      const rangeSizeS = thetaS2 - thetaS1;
       for (let i = 0; i <= n; i++) {
-        const angle = alphaS - thetaS + (i / n) * rangeSizeS;
+        const angle = thetaS1 + (i / n) * rangeSizeS;
         // console.log(`angleS: ${angle}`);
         points.push({ x: rSunPx * Math.cos(angle) + sunPoint.x, y: rSunPx * Math.sin(angle) + sunPoint.y });
       }
