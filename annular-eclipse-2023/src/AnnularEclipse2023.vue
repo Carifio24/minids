@@ -1105,6 +1105,9 @@ export default defineComponent({
 
       console.log("initial camera params RA, Dec:", R2D * this.initialCameraParams.raRad/15, R2D * this.initialCameraParams.decRad);
 
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      window.app = this;
       console.log(this);
       this.setTime(this.dateTime);
 
@@ -1363,12 +1366,17 @@ export default defineComponent({
       console.log(Planets['_planetLocations']);
       // const initZoom = this.wwtZoomDeg;
 
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const canvasHeight: number = this.wwtControl.canvas.height;
+
       const sunPosition = Planets['_planetLocations'][0];
       const moonPosition = Planets['_planetLocations'][9];
       const sunPoint = this.findScreenPointForRADec({ ra: sunPosition.RA * 15, dec: sunPosition.dec });
       const moonPoint = this.findScreenPointForRADec({ ra: moonPosition.RA * 15, dec: moonPosition.dec });
+      moonPoint.y = canvasHeight - moonPoint.y;
       sunPoint.x -= moonPoint.x;
-      sunPoint.y -= moonPoint.y;
+      sunPoint.y = canvasHeight - sunPoint.y - moonPoint.y;
 
 
       const jd = this.getJulian(this.selectedDate);
@@ -1385,23 +1393,17 @@ export default defineComponent({
       console.log(this.wwtZoomDeg * D2R);
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      console.log(this.wwtControl.canvas.height);
+      console.log(canvasHeight);
 
       // The factor of 6 comes from the relation between wwtZoomDeg and the actual size of the FOV in degrees
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const rMoonPx = 6 * thetaMoon * this.wwtControl.canvas.height / (this.wwtZoomDeg * D2R);
-      console.log(rMoonPx);
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const rSunPx = 6 * thetaSun * this.wwtControl.canvas.height / (this.wwtZoomDeg * D2R);
-      // const r = 2164 * Math.pow(this.wwtZoomDeg, -0.98553942146559) * (this.wwtControl.canvas.height / 971) / 2;
+      const rMoonPx = 6 * thetaMoon * canvasHeight / (this.wwtZoomDeg * D2R);
+      const rSunPx = 6 * thetaSun * canvasHeight / (this.wwtZoomDeg * D2R);
+      console.log(`ratio: ${rSunPx / rMoonPx}`);
 
       let x1: number;
       let y1: number;
-      let x2: number;
-      let y2: number;
+      // let x2: number;
+      // let y2: number;
       let xc: number;
       let yc: number;
       if (sunPoint.x === 0) {
@@ -1411,9 +1413,12 @@ export default defineComponent({
           return;
         }
         x1 = Math.sqrt(rMoonPx * rMoonPx - ysh * ysh);
+        if (isNaN(x1)) {
+          return;
+        }
         y1 = ysh;
-        x2 = -x1;
-        y2 = ysh;
+        // x2 = -x1;
+        // y2 = ysh;
         xc = 0;
         yc = ysh;
 
@@ -1432,10 +1437,13 @@ export default defineComponent({
         const c = yInt * yInt - rMoonPx * rMoonPx;
 
         const sqrDisc = Math.sqrt(b * b - 4 * a * c);
+        if (isNaN(sqrDisc)) {
+          return;
+        }
         x1 = (-b + sqrDisc) / (2 * a);
-        x2 = (-b - sqrDisc) / (2 * a);
+        // x2 = (-b - sqrDisc) / (2 * a);
         y1 = mPerp * x1 + yInt;
-        y2 = mPerp * x2 + yInt;
+        // y2 = mPerp * x2 + yInt;
 
         // Find the point at the edge of the moon along the line joining their centers
         xc = rMoonPx / Math.sqrt(1 + m * m);
@@ -1447,6 +1455,7 @@ export default defineComponent({
 
       // The standard-position angle of the sun-moon line in the moon's reference frame
       const alpha = Math.atan2(sunPoint.y, sunPoint.x);
+      console.log(sunPoint);
 
       // Find (half of) the angular spread between the two edge points
       const dIsq = x1 * x1 + y1 * y1;
@@ -1458,12 +1467,11 @@ export default defineComponent({
       const theta = Math.acos(cosTheta);
 
       const points: { x: number; y: number }[] = [];
-      // const range = [alpha - theta, alpha + theta];
       const rangeSize = 2 * theta;
       const n = 10;
       for (let i = 0; i <= n; i++) {
         const angle = alpha - theta + (i / n) * rangeSize;
-        console.log(angle);
+        // console.log(`angle: ${angle}`);
         points.push({ x: rMoonPx * Math.cos(angle), y: rMoonPx * Math.sin(angle) });
       }
 
@@ -1472,15 +1480,26 @@ export default defineComponent({
 
       // We now need to somewhat repeat this analysis in the Sun frame
 
-      const thetaS1 = Math.atan2(y1 - sunPoint.y, x1 - sunPoint.x);
-      const thetaS2 = Math.atan2(y2 - sunPoint.y, x2 - sunPoint.x);
+      let alphaS = Math.PI + alpha;
+      if (alphaS < 0) {
+        alphaS += 2 * Math.PI;
+      }
+      const xs = sunPoint.x;
+      const ys = sunPoint.y;
+      const dIsqS = (x1 - xs) * (x1 - xs) + (y1 - ys) * (y1 - ys);
+      const dIS = Math.sqrt(dIsqS);
+      const dCsqS = (xc - xs) * (xc - xs) + (yc - ys) * (yc - ys);
+      const dCS = Math.sqrt(dCsqS);
+      const cosThetaS = (dIsqS + dCsqS - dICsq) / (2 * dIS * dCS); 
+      const thetaS = Math.acos(cosThetaS);
 
-      console.log(`thetaS1: ${thetaS1}`);
-      console.log(`thetaS2: ${thetaS2}`);
+      console.log(`thetaS: ${thetaS}`);
+      console.log(`alphaS: ${alphaS}`);
 
-      const rangeSizeS = thetaS2 - thetaS1;
+      const rangeSizeS = 2 * thetaS;
       for (let i = 0; i <= n; i++) {
-        const angle = thetaS1 + (i / n) * rangeSizeS;
+        const angle = alphaS - thetaS + (i / n) * rangeSizeS;
+        // console.log(`angleS: ${angle}`);
         points.push({ x: rSunPx * Math.cos(angle) + sunPoint.x, y: rSunPx * Math.sin(angle) + sunPoint.y });
       }
 
@@ -1493,11 +1512,12 @@ export default defineComponent({
       const centroidX = points.reduce((s, p) => s + p.x, 0) / points.length;
       const centroidY = points.reduce((s, p) => s + p.y, 0) / points.length;
 
-      points.sort((p1, p2) => Math.atan2(p2.y - centroidY, p2.x - centroidX) - Math.atan2(p1.y - centroidY, p1.x - centroidX));
+      // The fact that we're going to re-flip the y axis makes the sign here opposite from what one would expect
+      points.sort((p1, p2) => - Math.atan2(p2.y - centroidY, p2.x - centroidX) + Math.atan2(p1.y - centroidY, p1.x - centroidX));
 
       console.log(points);
 
-      const locations = points.map(pt => this.findRADecForScreenPoint(pt));
+      const locations = points.map(pt => this.findRADecForScreenPoint({ x: pt.x, y: canvasHeight - pt.y }));
       console.log(locations);
       const overlay = new Poly2();
       overlay.set_fill(true);
