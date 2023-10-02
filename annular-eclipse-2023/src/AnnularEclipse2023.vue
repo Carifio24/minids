@@ -1897,13 +1897,13 @@ export default defineComponent({
         this.removeAnnotations();
       }
       finally {
+        this.createMoonOverlay();
         if (this.showHorizon) {
           this.createHorizon(when);
           if (this.showSky) {
             this.createSky(when);
           }
         }
-        this.createMoonOverlay();
       }
     },
 
