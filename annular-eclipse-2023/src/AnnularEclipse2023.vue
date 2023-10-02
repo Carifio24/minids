@@ -1564,7 +1564,7 @@ export default defineComponent({
       const overlay = new Poly2();
       overlay.set_fill(true);
       overlay.set_fillColor("#FF0000");
-      overlay.set_lineColor("#ff0000");
+      overlay.set_lineColor("#FF0000");
       locations.forEach(pt => overlay.addPoint(pt.ra, pt.dec));
       Annotation2.addAnnotation(overlay);
       console.log(overlay);
@@ -1656,7 +1656,7 @@ export default defineComponent({
       this.wwtSettings.set_locationLat(R2D * this.location.latitudeRad);
       this.wwtSettings.set_locationLng(R2D * this.location.longitudeRad );
       if(this.showHorizon) {
-        this.updateHorizon();
+        this.updateFrontAnnotations();
       }
     },
 
@@ -1704,7 +1704,7 @@ export default defineComponent({
 
     onTimeSliderChange() {
       this.$nextTick(() => {
-        this.updateHorizon(this.dateTime);
+        this.updateFrontAnnotations(this.dateTime);
       });
     },
 
@@ -1935,11 +1935,11 @@ export default defineComponent({
       if (this.syncDateTimeWithWWTCurrentTime) {
         this.setTime(this.dateTime);
       }
-      this.updateHorizon(this.dateTime); 
+      this.updateFrontAnnotations(this.dateTime);
       this.updateMoonOverlay();
     },
 
-    updateHorizon(when: Date | null = null) {
+    updateFrontAnnotations(when: Date | null = null) {
       try {
         this.removeAnnotations();
       }
@@ -2001,7 +2001,7 @@ export default defineComponent({
       this.showAltAzGrid = false;
       this.skyColor = this.skyColorNight;
       this.horizonOpacity = 0.6;
-      this.updateHorizon(); // manually update horizon
+      this.updateFrontAnnotations(); // manually update horizon
       this.playbackRate = this.scopeRate;
       // this.setForegroundImageByName("Black Sky Background");
       // this.setForegroundOpacity(100);
@@ -2148,12 +2148,12 @@ export default defineComponent({
     },
 
     showHorizon(_show: boolean) {
-      this.updateHorizon();
+      this.updateFrontAnnotations();
       this.updateMoonTexture();
     },
 
     showSky(_show: boolean) {
-      this.updateHorizon();
+      this.updateFrontAnnotations();
       this.updateMoonTexture();
     },
 
@@ -2183,7 +2183,7 @@ export default defineComponent({
       }
       
       this.selectedTime = time.getTime();
-      this.updateHorizon(time);
+      this.updateFrontAnnotations(time);
     },
 
     selectedTimezone(newTz: string, oldTz: string) {
@@ -2213,7 +2213,7 @@ export default defineComponent({
 
       // We need to let the location update before we redraw the horizon
       this.$nextTick(() => {
-        this.updateHorizon();
+        this.updateFrontAnnotations();
       });
 
       this.centerSun();
@@ -2254,7 +2254,7 @@ export default defineComponent({
     },
 
     skyColor(_color: string) {
-      this.updateHorizon();
+      this.updateFrontAnnotations();
     },
 
     sunAboveHorizon(isAbove: boolean) {
