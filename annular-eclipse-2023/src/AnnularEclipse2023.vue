@@ -1099,6 +1099,7 @@ export default defineComponent({
   },
 
   mounted() {
+    console.log(Annotation2);
     this.waitForReady().then(async () => {
 
       this.backgroundImagesets = [...skyBackgroundImagesets];
@@ -1180,7 +1181,6 @@ export default defineComponent({
       this.onResize();
     });
 
-    setTimeout(() => this.createMoonOverlay(), 3000);
   },
 
   computed: {
@@ -1375,7 +1375,7 @@ export default defineComponent({
       }
     },
 
-    createMoonOverlay() {
+    updateMoonOverlay() {
       console.log("Creating moon overlay");
       console.log(Planets);
       console.log(Planets['_planetLocations']);
@@ -1414,122 +1414,135 @@ export default defineComponent({
       const rSunPx = 6 * thetaSun * canvasHeight / (this.wwtZoomDeg * D2R);
       console.log(`ratio: ${rSunPx / rMoonPx}`);
 
-      let x1: number;
-      let y1: number;
-      let x2: number;
-      let y2: number;
-      let xc: number;
-      let yc: number;
-      if (sunPoint.x === 0) {
-
-        const ysh = 0.5 * sunPoint.y;
-        if (ysh >= rMoonPx) {
-          return;
+      const points: { x: number; y: number }[] = [];
+      const sunMoonDistance = Math.sqrt(sunPoint.x * sunPoint.x + sunPoint.y * sunPoint.y);
+      const n = 25;
+      
+      // If the moon is completely "inside" of the sun
+      console.log(sunMoonDistance, rSunPx - rMoonPx);
+      if (sunMoonDistance < rSunPx - rMoonPx) {
+        for (let i = 0; i <= n; i++) {
+          const angle = (i / n) * 2 * Math.PI;
+          points.push({ x: rMoonPx * Math.cos(angle), y: rMoonPx * Math.sin(angle) });
         }
-        x1 = Math.sqrt(rMoonPx * rMoonPx - ysh * ysh);
-        if (isNaN(x1)) {
-          console.log("x1 isNan");
-          console.log(rMoonPx, ysh);
-          return;
-        }
-        y1 = ysh;
-        x2 = -x1;
-        y2 = ysh;
-        xc = 0;
-        yc = ysh;
-
       } else {
 
-        // m is the slope of the line joining the moon and the sun
-        // mPerp is the slope of a perpendicular line
-        // yInt is the y-intercept of the perpendicular bisector between Sun and Moon points
-        const m = sunPoint.y / sunPoint.x;
-        const mPerp = -sunPoint.x / sunPoint.y;
-        const yInt = (sunPoint.x * sunPoint.x + sunPoint.y * sunPoint.y - (rSunPx * rSunPx - rMoonPx * rMoonPx)) / (2 * sunPoint.y);
+        let x1: number;
+        let y1: number;
+        let x2: number;
+        let y2: number;
+        let xc: number;
+        let yc: number;
 
-        // Find the x-coordinates of the edge points of the moon-sun intersection
-        const a = (1 + mPerp * mPerp);
-        const b = 2 * mPerp * yInt;
-        const c = yInt * yInt - rMoonPx * rMoonPx;
+        if (sunPoint.x === 0) {
 
-        const sqrDisc = Math.sqrt(b * b - 4 * a * c);
-        if (isNaN(sqrDisc)) {
-          console.log("sqrDisc isNan");
-          console.log(a, b, c);
-          return;
+          const ysh = 0.5 * sunPoint.y;
+          if (ysh >= rMoonPx) {
+            return;
+          }
+          x1 = Math.sqrt(rMoonPx * rMoonPx - ysh * ysh);
+          if (isNaN(x1)) {
+            console.log("x1 isNan");
+            console.log(rMoonPx, ysh);
+            return;
+          }
+          y1 = ysh;
+          x2 = -x1;
+          y2 = ysh;
+          xc = 0;
+          yc = ysh;
+
+        } else {
+
+          // m is the slope of the line joining the moon and the sun
+          // mPerp is the slope of a perpendicular line
+          // yInt is the y-intercept of the perpendicular bisector between Sun and Moon points
+          const m = sunPoint.y / sunPoint.x;
+          const mPerp = -sunPoint.x / sunPoint.y;
+          const yInt = (sunPoint.x * sunPoint.x + sunPoint.y * sunPoint.y - (rSunPx * rSunPx - rMoonPx * rMoonPx)) / (2 * sunPoint.y);
+
+          // Find the x-coordinates of the edge points of the moon-sun intersection
+          const a = (1 + mPerp * mPerp);
+          const b = 2 * mPerp * yInt;
+          const c = yInt * yInt - rMoonPx * rMoonPx;
+
+          const sqrDisc = Math.sqrt(b * b - 4 * a * c);
+          if (isNaN(sqrDisc)) {
+            console.log("sqrDisc isNan");
+            console.log(a, b, c);
+            return;
+          }
+          x1 = (-b + sqrDisc) / (2 * a);
+          x2 = (-b - sqrDisc) / (2 * a);
+          y1 = mPerp * x1 + yInt;
+          y2 = mPerp * x2 + yInt;
+
+          // Find the point at the edge of the moon along the line joining their centers
+          xc = rMoonPx / Math.sqrt(1 + m * m);
+          if (sunPoint.x < 0) {
+            xc *= -1;
+          }
+          yc = m * xc;
+          yc;
         }
-        x1 = (-b + sqrDisc) / (2 * a);
-        x2 = (-b - sqrDisc) / (2 * a);
-        y1 = mPerp * x1 + yInt;
-        y2 = mPerp * x2 + yInt;
 
-        // Find the point at the edge of the moon along the line joining their centers
-        xc = rMoonPx / Math.sqrt(1 + m * m);
-        if (sunPoint.x < 0) {
-          xc *= -1;
+        // The standard-position angle of the sun-moon line in the moon's reference frame
+        const alpha = this.angleInZeroToTwoPi(Math.atan2(sunPoint.y, sunPoint.x));
+        console.log(sunPoint);
+
+        let theta1 = Math.atan2(y1 / rMoonPx, x1 / rMoonPx);
+        let theta2 = Math.atan2(y2 / rMoonPx, x2 / rMoonPx);
+        theta1 = this.angleInZeroToTwoPi(theta1);
+        theta2 = this.angleInZeroToTwoPi(theta2);
+        console.log(alpha, theta1, theta2, this.angleBetween(alpha, theta1, theta2));
+        if (!this.angleBetween(alpha, theta1, theta2)) {
+          const t = theta1;
+          theta1 = theta2;
+          theta2 = t;
         }
-        yc = m * xc;
-        yc;
-      }
 
-      // The standard-position angle of the sun-moon line in the moon's reference frame
-      const alpha = this.angleInZeroToTwoPi(Math.atan2(sunPoint.y, sunPoint.x));
-      console.log(sunPoint);
+        if (theta1 > theta2) {
+          theta1 -= 2 * Math.PI;
+        }
 
-      let theta1 = Math.atan2(y1 / rMoonPx, x1 / rMoonPx);
-      let theta2 = Math.atan2(y2 / rMoonPx, x2 / rMoonPx);
-      theta1 = this.angleInZeroToTwoPi(theta1);
-      theta2 = this.angleInZeroToTwoPi(theta2);
-      console.log(alpha, theta1, theta2, this.angleBetween(alpha, theta1, theta2));
-      if (!this.angleBetween(alpha, theta1, theta2)) {
-        const t = theta1;
-        theta1 = theta2;
-        theta2 = t;
-      }
+        const rangeSize = theta2 - theta1;
+        for (let i = 0; i <= n; i++) {
+          const angle = theta1 + (i / n) * rangeSize;
+          // console.log(`angle: ${angle}`);
+          points.push({ x: rMoonPx * Math.cos(angle), y: rMoonPx * Math.sin(angle) });
+        }
 
-      if (theta1 > theta2) {
-        theta1 -= 2 * Math.PI;
-      }
+        console.log(`alpha: ${alpha}`);
+        console.log(`theta1: ${theta1}`);
+        console.log(`theta2: ${theta2}`);
 
-      const points: { x: number; y: number }[] = [];
-      const rangeSize = theta2 - theta1;
-      const n = 10;
-      for (let i = 0; i <= n; i++) {
-        const angle = theta1 + (i / n) * rangeSize;
-        // console.log(`angle: ${angle}`);
-        points.push({ x: rMoonPx * Math.cos(angle), y: rMoonPx * Math.sin(angle) });
-      }
+        // We now need to somewhat repeat this analysis in the Sun frame
 
-      console.log(`alpha: ${alpha}`);
-      console.log(`theta1: ${theta1}`);
-      console.log(`theta2: ${theta2}`);
+        let thetaS1 = Math.atan2((y1 - sunPoint.y) / rSunPx, (x1 - sunPoint.x) / rSunPx);
+        let thetaS2 = Math.atan2((y2 - sunPoint.y) / rSunPx, (x2 - sunPoint.x) / rSunPx);
+        thetaS1 = this.angleInZeroToTwoPi(thetaS1);
+        thetaS2 = this.angleInZeroToTwoPi(thetaS2);
+        const alphaS = this.angleInZeroToTwoPi(Math.PI + alpha);
+        console.log(alphaS, thetaS1, thetaS2, this.angleBetween(alphaS, thetaS1, thetaS2));
+        if (!this.angleBetween(alphaS, thetaS1, thetaS2)) {
+          const t = thetaS1;
+          thetaS1 = thetaS2;
+          thetaS2 = t;
+        }
 
-      // We now need to somewhat repeat this analysis in the Sun frame
+        console.log(`alphaS: ${alphaS}`);
+        console.log(`thetaS1: ${thetaS1}`);
+        console.log(`thetaS2: ${thetaS2}`);
 
-      let thetaS1 = Math.atan2((y1 - sunPoint.y) / rSunPx, (x1 - sunPoint.x) / rSunPx);
-      let thetaS2 = Math.atan2((y2 - sunPoint.y) / rSunPx, (x2 - sunPoint.x) / rSunPx);
-      thetaS1 = this.angleInZeroToTwoPi(thetaS1);
-      thetaS2 = this.angleInZeroToTwoPi(thetaS2);
-      const alphaS = this.angleInZeroToTwoPi(Math.PI + alpha);
-      console.log(alphaS, thetaS1, thetaS2, this.angleBetween(alphaS, thetaS1, thetaS2));
-      if (!this.angleBetween(alphaS, thetaS1, thetaS2)) {
-        const t = thetaS1;
-        thetaS1 = thetaS2;
-        thetaS2 = t;
-      }
-
-      console.log(`alphaS: ${alphaS}`);
-      console.log(`thetaS1: ${thetaS1}`);
-      console.log(`thetaS2: ${thetaS2}`);
-
-      if (thetaS1 > thetaS2) {
-        thetaS1 -= 2 * Math.PI;
-      }
-      const rangeSizeS = thetaS2 - thetaS1;
-      for (let i = 0; i <= n; i++) {
-        const angle = thetaS1 + (i / n) * rangeSizeS;
-        // console.log(`angleS: ${angle}`);
-        points.push({ x: rSunPx * Math.cos(angle) + sunPoint.x, y: rSunPx * Math.sin(angle) + sunPoint.y });
+        if (thetaS1 > thetaS2) {
+          thetaS1 -= 2 * Math.PI;
+        }
+        const rangeSizeS = thetaS2 - thetaS1;
+        for (let i = 0; i <= n; i++) {
+          const angle = thetaS1 + (i / n) * rangeSizeS;
+          // console.log(`angleS: ${angle}`);
+          points.push({ x: rSunPx * Math.cos(angle) + sunPoint.x, y: rSunPx * Math.sin(angle) + sunPoint.y });
+        }
       }
 
       // We made a translation into the moon's frame, so undo that
@@ -1923,6 +1936,7 @@ export default defineComponent({
         this.setTime(this.dateTime);
       }
       this.updateHorizon(this.dateTime); 
+      this.updateMoonOverlay();
     },
 
     updateHorizon(when: Date | null = null) {
