@@ -2123,6 +2123,18 @@ export default defineComponent({
       this.updateMoonTexture();
     },
 
+    wwtRollRad(angle: number) {
+      if (angle !== 0) {
+        this.gotoRADecZoom({
+          raRad: this.wwtRARad,
+          decRad: this.wwtDecRad,
+          zoomDeg: this.wwtZoomDeg,
+          rollRad: 0,
+          instant: true
+        });
+      }
+    },
+
     useRegularMoon(_show: boolean) {
       this.updateMoonTexture();
     },
