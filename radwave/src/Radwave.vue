@@ -229,6 +229,7 @@ import { csvFormatRows, csvParse } from "d3-dsv";
 type SheetType = "text" | "video" | null;
 
 import radwaveData from "./assets/RW_dust_oscillation_phase_updated_radec.csv";
+import clusterData from "./assets/RW_cluster_oscillation_phase_updated_radec.csv";
 
 const R2D = 180.0 / Math.PI;
 
@@ -296,7 +297,8 @@ export default defineComponent({
 
       tab: 0,
 
-      layer: null as SpreadSheetLayer | null,
+      dustLayer: null as SpreadSheetLayer | null,
+      clusterLayer: null as SpreadSheetLayer | null,
       phase: 0,
       playWaveMotion: false,
       playInterval: null as ReturnType<typeof setInterval> | null
@@ -318,7 +320,7 @@ export default defineComponent({
         instant: true
       }).then(() => this.positionSet = true);
 
-      this.updateLayer(this.phase).then(() => {
+      Promise.all([this.updateDustLayer(this.phase), this.updateClusterLayer(this.phase)]).then(() => {
         this.layersLoaded = true;
       });
     });
@@ -383,33 +385,57 @@ export default defineComponent({
       }
     },
 
-    async updateLayer(phase: number) {
-      if (this.layer !== null) {
-        this.deleteLayer(this.layer.id);
+    async updateDustLayer(phase: number) {
+      if (this.dustLayer !== null) {
+        this.deleteLayer(this.dustLayer.id);
       }
       const table = parseCsvTable(radwaveData, phase);
       const data = formatCsvTable(table);
-      this.layer = await this.createTableLayer({
-        name: "Radcliffe Wave",
+      this.dustLayer = await this.createTableLayer({
+        name: "Radcliffe Wave Dust",
         referenceFrame: "Sky",
         dataCsv: data 
       });
-      this.layer.set_lngColumn(2);
-      this.layer.set_latColumn(3);
-      this.layer.set_altColumn(1);
-      this.layer.set_raUnits(RAUnits.degrees);
-      this.layer.set_altUnit(AltUnits.parsecs);
-      this.layer.set_altType(AltTypes.distance);
-      this.layer.set_color(Color.load("#ff0000"));
-      this.layer.set_showFarSide(true);
-      this.layer.set_scaleFactor(25);
-      this.layer.set_markerScale(MarkerScales.screen);
+      this.dustLayer.set_lngColumn(2);
+      this.dustLayer.set_latColumn(3);
+      this.dustLayer.set_altColumn(1);
+      this.dustLayer.set_raUnits(RAUnits.degrees);
+      this.dustLayer.set_altUnit(AltUnits.parsecs);
+      this.dustLayer.set_altType(AltTypes.distance);
+      this.dustLayer.set_color(Color.load("#ff0000"));
+      this.dustLayer.set_showFarSide(true);
+      this.dustLayer.set_scaleFactor(25);
+      this.dustLayer.set_markerScale(MarkerScales.screen);
+    },
+
+    async updateClusterLayer(phase: number) {
+      if (this.clusterLayer !== null) {
+        this.deleteLayer(this.clusterLayer.id);
+      }
+      const table = parseCsvTable(clusterData, phase);
+      const data = formatCsvTable(table);
+      this.clusterLayer = await this.createTableLayer({
+        name: "Radcliffe Wave Clusters",
+        referenceFrame: "Sky",
+        dataCsv: data
+      });
+      this.clusterLayer.set_lngColumn(2);
+      this.clusterLayer.set_latColumn(3);
+      this.clusterLayer.set_altColumn(1);
+      this.clusterLayer.set_raUnits(RAUnits.degrees);
+      this.clusterLayer.set_altUnit(AltUnits.parsecs);
+      this.clusterLayer.set_altType(AltTypes.distance);
+      this.clusterLayer.set_color(Color.load("#0000ff"));
+      this.clusterLayer.set_showFarSide(true);
+      this.clusterLayer.set_scaleFactor(25);
+      this.clusterLayer.set_markerScale(MarkerScales.screen);
     }
   },
 
   watch: {
     phase(phase: number) {
-      this.updateLayer(phase);
+      this.updateDustLayer(phase);
+      this.updateClusterLayer(phase);
     },
 
     playWaveMotion(play: boolean) {
