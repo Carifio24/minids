@@ -319,6 +319,7 @@ export default defineComponent({
       phase: 0,
       altFactor: 1,
       phaseCol: 3,
+      phaseRowCount: 300,
 
       bestFitLayer: new SpreadSheetLayer(),
       bestFitAnnotations: [] as PolyLine[],
@@ -538,7 +539,7 @@ export default defineComponent({
       this.altFactor = this.altFactor / (1000 * 149598000);
     },
 
-    addLayerPointsToAnnotation(layer: SpreadSheetLayer, annotation: Annotation, rowFilter: (row: Row) => boolean) {
+    addLayerPointsToAnnotation(layer: SpreadSheetLayer, annotation: Annotation, phase: number) {
       const lngCol = layer.get_lngColumn();
       const latCol = layer.get_latColumn();
       const dCol = layer.get_altColumn();
@@ -546,11 +547,8 @@ export default defineComponent({
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      const rows: Row[] = layer.get__table().rows;
+      const rows: Row[] = layer.get__table().rows.slice(phase * this.phaseRowCount, (phase + 1) * this.phaseRowCount);
       for (const row of rows) {
-        if (!rowFilter(row)) {
-          continue;
-        }
     
         // The API for annotations seem to assume that we're in 2D sky mode - there's no option for distance
         // so we have to calculate our positions in 3D and just directly insert them into the array of points.
@@ -573,7 +571,7 @@ export default defineComponent({
         const offsetPhase = (phase + offset) % 360;
         const ann = new PolyLine();
         ann.set_lineColor("#83befb");
-        this.addLayerPointsToAnnotation(this.bestFitLayer, ann, (row: Row) => row[this.phaseCol] == offsetPhase);
+        this.addLayerPointsToAnnotation(this.bestFitLayer, ann, offsetPhase);
         this.addAnnotation(ann);
         bestFitAnnotations.push(ann);
       });
