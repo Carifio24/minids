@@ -530,7 +530,7 @@ export default defineComponent({
 
       sunColor: "#ffff0a",
       sunLayer: null as SpreadSheetLayer | null,
-      sunAnnotation: null as Poly | null,
+      sunAnnotations: [] as Poly[],
       
       mode: "3D" as "2D" | "3D" | "full" | null,
       resizeObserver: null as ResizeObserver | null,
@@ -908,7 +908,7 @@ export default defineComponent({
       let alt = row[dCol];
       alt = (altFactor * alt);
       const sunPos = Coordinates.geoTo3dRad(row[latCol], row[lngCol], alt);
-      const squareSideLength = 30000000;
+      const squareSideLength = 15000000;
       const halfSideLength = squareSideLength / 2;
       const threeD = WWTControl.singleton.renderType == ImageSetType.solarSystem;
       const pts = [
@@ -929,14 +929,18 @@ export default defineComponent({
         });
       }
 
-      this.sunAnnotation = new Poly();
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      pts.forEach(pt => this.sunAnnotation._points$1.push(pt));
+      this.sunAnnotations = [new Poly(), new Poly()];
+      pts.forEach((pt, index) => {
+        const annotationIndex = index % 2;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this.sunAnnotations[annotationIndex]._points$1.push(pt);
+      });
 
-      this.sunAnnotation.set_lineColor(this.sunColor);
-
-      this.addAnnotation(this.sunAnnotation);
+      this.sunAnnotations.forEach(ann => {
+        ann.set_lineColor(this.sunColor);
+        this.addAnnotation(ann);
+      });
     },
 
     // Note that we are NOT going to show this layer
